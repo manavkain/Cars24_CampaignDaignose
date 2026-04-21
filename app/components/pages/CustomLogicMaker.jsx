@@ -7,30 +7,31 @@ const OPS = ['>','<','>=','<=','=']
 const ACTIONS = ['Flag Creative Fatigue','Flag Audience Saturation','Flag Budget Risk','Auto-Diagnose + Notify','Pause Campaign','Increase Bid 10%','Decrease Budget 20%','Send Alert','Log to Airtable','Generate Fix Recommendations']
 
 function RuleRow({ rule, onChange, onDelete, onToggle }) {
-  const sev = rule.severity
   return (
-    <div className="logic-rule animate-fade-in">
+    <div className="logic-rule animate-fade-in" style={{background: rule.active ? 'var(--surface-white)' : 'var(--surface-low)', opacity: rule.active ? 1 : 0.7, transition: 'all .2s', padding: '12px 16px', borderRadius: 12, border: rule.active ? '1px solid rgba(0,88,148,0.15)' : '1px solid rgba(192,199,211,0.2)'}}>
       <div className={`toggle-track ${rule.active ? 'on' : ''}`} onClick={() => onToggle(rule.id)} style={{ cursor: 'pointer' }}>
         <div className="toggle-thumb" />
       </div>
-      <span className="tag tag-if">IF</span>
-      <select value={rule.metric} onChange={e => onChange(rule.id,'metric',e.target.value)} style={{ width: 110, fontSize: 12, padding: '5px 7px' }}>
+      <span className="tag tag-if" style={{marginLeft: 8}}>IF</span>
+      <select value={rule.metric} onChange={e => onChange(rule.id,'metric',e.target.value)} style={{ width: 120, fontSize: 13, fontWeight: 600, color: 'var(--on-surface)' }}>
         {METRICS_LIST.map(m => <option key={m}>{m}</option>)}
       </select>
-      <select value={rule.operator} onChange={e => onChange(rule.id,'operator',e.target.value)} style={{ width: 52, fontSize: 12, padding: '5px 6px', textAlign: 'center' }}>
+      <select value={rule.operator} onChange={e => onChange(rule.id,'operator',e.target.value)} style={{ width: 60, fontSize: 13, fontWeight: 700, color: 'var(--primary)', textAlign: 'center' }}>
         {OPS.map(o => <option key={o}>{o}</option>)}
       </select>
-      <input type="number" value={rule.value} onChange={e => onChange(rule.id,'value',e.target.value)} style={{ width: 64, fontSize: 12, padding: '5px 7px' }} />
+      <input type="number" value={rule.value} onChange={e => onChange(rule.id,'value',e.target.value)} style={{ width: 80, fontSize: 13, fontWeight: 700, color: 'var(--on-surface)' }} />
       <span className="tag tag-then">THEN</span>
-      <select value={rule.action} onChange={e => onChange(rule.id,'action',e.target.value)} style={{ flex: 1, fontSize: 12, padding: '5px 7px', minWidth: 160 }}>
+      <select value={rule.action} onChange={e => onChange(rule.id,'action',e.target.value)} style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--on-surface)', minWidth: 180 }}>
         {ACTIONS.map(a => <option key={a}>{a}</option>)}
       </select>
-      <select value={rule.severity} onChange={e => onChange(rule.id,'severity',e.target.value)} style={{ width: 82, fontSize: 12, padding: '5px 7px' }}>
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="low">Low</option>
+      <select value={rule.severity} onChange={e => onChange(rule.id,'severity',e.target.value)} style={{ width: 95, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+        <option value="high">Critical</option>
+        <option value="medium">Warning</option>
+        <option value="low">Notice</option>
       </select>
-      <button onClick={() => onDelete(rule.id)} style={{ width: 26, height: 26, borderRadius: 5, border: 'none', background: 'var(--red-bg)', color: 'var(--red)', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
+      <button className="btn btn-ghost" onClick={() => onDelete(rule.id)} style={{ width: 32, height: 32, padding: 0, justifyContent: 'center', border: 'none', background: 'var(--surface-high)', color: 'var(--error)' }}>
+         <span className="material-symbols-outlined" style={{fontSize: 18}}>delete</span>
+      </button>
     </div>
   )
 }
@@ -67,63 +68,93 @@ export default function CustomLogicMaker() {
   const active = logicRules.filter(r => r.active).length
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, height: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--t1)', margin: 0 }}>Logic Maker</h2>
-          <p style={{ fontSize: 13, color: 'var(--t3)', marginTop: 4 }}>IF/THEN rules that auto-trigger actions when metrics cross thresholds.</p>
+          <h2 style={{ fontFamily: 'Manrope,sans-serif', fontSize: 32, fontWeight: 800, color: 'var(--on-surface)', margin: 0, letterSpacing: '-0.02em' }}>Logic Maker</h2>
+          <p style={{ fontSize: 15, color: 'var(--on-surface-v)', marginTop: 8 }}>Build custom IF/THEN protocols to automate campaign anomaly detection.</p>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button className="btn btn-ghost btn-sm" onClick={test}>▶ Test Against Live Metrics</button>
-          <button className="btn btn-ghost btn-sm" onClick={add}>+ Add Rule</button>
-          <button className="btn btn-blue btn-sm" onClick={save}>{saved ? '✓ Saved' : 'Save Rules'}</button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-ghost" onClick={test}>
+            <span className="material-symbols-outlined" style={{fontSize: 18}}>play_circle</span> Test against Live
+          </button>
+          <button className="btn btn-ghost" onClick={add}>
+             <span className="material-symbols-outlined" style={{fontSize: 18}}>add_circle</span> New Rule
+          </button>
+          <button className="btn btn-primary" onClick={save} style={{padding: '10px 24px'}}>
+             {saved ? '✓ Policy Saved' : 'Deploy Rules'}
+          </button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        {[{ l: 'Total rules', v: logicRules.length }, { l: 'Active', v: active, c: 'var(--green)' }, { l: 'Inactive', v: logicRules.length - active, c: 'var(--t4)' }].map(s => (
-          <div key={s.l} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 16px', display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ fontSize: 18, fontWeight: 700, color: s.c || 'var(--t1)' }}>{s.v}</span>
-            <span style={{ fontSize: 12, color: 'var(--t3)' }}>{s.l}</span>
+      {/* Stats - Stitch style */}
+      <div style={{ display: 'flex', gap: 12 }}>
+        {[
+          { l: 'Active Rules', v: active, c: '#16a34a' },
+          { l: 'Paused', v: logicRules.length - active, c: 'var(--outline)' },
+          { l: 'Total Nodes', v: logicRules.length, c: 'var(--primary)' }
+        ].map(s => (
+          <div key={s.l} style={{ background: 'var(--surface-white)', border: '1px solid rgba(192,199,211,0.15)', borderRadius: 12, padding: '12px 20px', display: 'flex', gap: 12, alignItems: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <span style={{ fontSize: 24, fontWeight: 800, color: s.c, fontFamily: 'Manrope,sans-serif' }}>{s.v}</span>
+            <span style={{ fontSize: 11, color: 'var(--outline)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>{s.l}</span>
           </div>
         ))}
       </div>
 
-      {/* Header row */}
-      <div style={{ display: 'flex', gap: 8, padding: '0 12px', fontSize: 10, color: 'var(--t4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>
-        <span style={{ width: 34 }}></span><span style={{ width: 28 }}></span><span style={{ width: 110 }}>Metric</span><span style={{ width: 52 }}>Op</span><span style={{ width: 64 }}>Value</span><span style={{ width: 36 }}></span><span style={{ flex: 1 }}>Action</span><span style={{ width: 82 }}>Severity</span><span style={{ width: 26 }}></span>
-      </div>
-
-      <div className="card" style={{ flex: 1, overflow: 'auto' }}>
-        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {/* Rule grid */}
+      <div className="card" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div className="card-header" style={{background: 'var(--surface-low)', padding: '12px 20px'}}>
+           <div style={{ display: 'flex', gap: 8, width: '100%', fontSize: 10, color: 'var(--outline)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>
+            <span style={{ width: 44 }}></span><span style={{ width: 120 }}>Metric Parameter</span><span style={{ width: 60, textAlign: 'center' }}>Op</span><span style={{ width: 80 }}>Value</span><span style={{ width: 48 }}></span><span style={{ flex: 1 }}>Automated Action</span><span style={{ width: 95 }}>Severity</span><span style={{ width: 32 }}></span>
+          </div>
+        </div>
+        <div className="card-body" style={{ flex: 1, overflow: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--surface-cont)' }}>
           {logicRules.length === 0
-            ? <div className="empty-state"><div className="icon">⚙</div><div className="title">No rules yet</div><div className="sub">Click "+ Add Rule" to build your first automation.</div></div>
+            ? <div className="empty-state">
+                <span className="material-symbols-outlined" style={{fontSize: 48, opacity: .3, color: 'var(--primary)'}}>rule</span>
+                <div className="title">No rules established</div>
+                <div className="sub">Click "+ New Rule" to define your first automation protocol.</div>
+              </div>
             : logicRules.map(r => <RuleRow key={r.id} rule={r} onChange={upd} onDelete={del} onToggle={tog} />)}
         </div>
       </div>
 
       {testResult !== null && (
-        <div className="card animate-fade-in">
-          <div className="card-header">
-            <span className="card-title">Test Results — Current Metrics</span>
-            <button onClick={() => setTestResult(null)} style={{ background: 'none', border: 'none', color: 'var(--t3)', cursor: 'pointer', fontSize: 16 }}>✕</button>
+        <div className="card animate-slide-up" style={{ position: 'fixed', bottom: 24, right: 24, width: 480, boxShadow: '0 20px 50px rgba(0,0,0,0.15)', zIndex: 100, border: '1px solid var(--primary-c)' }}>
+          <div className="card-header" style={{background: 'var(--primary-c)', color: '#fff'}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+              <span className="material-symbols-outlined" style={{fontSize: 20}}>biotech</span>
+              <span className="card-title" style={{color: '#fff'}}>Live Policy Audit</span>
+            </div>
+            <button onClick={() => setTestResult(null)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 20 }}>✕</button>
           </div>
-          <div className="card-body">
+          <div className="card-body" style={{maxHeight: 400, overflow: 'auto'}}>
             {testResult.length === 0
-              ? <div style={{ color: 'var(--green)', fontSize: 13, fontWeight: 500 }}>✓ No rules triggered. All metrics within thresholds.</div>
+              ? <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#16a34a', fontSize: 14, fontWeight: 600 }}>
+                  <span className="material-symbols-outlined">check_circle</span>
+                  Compliance Verified. No policies triggered.
+                </div>
               : <div>
-                  <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 8 }}><span style={{ color: 'var(--red)', fontWeight: 600 }}>{testResult.length} rule{testResult.length > 1 ? 's' : ''} triggered</span> against current metrics:</div>
-                  {testResult.map(r => {
-                    const val = { CTR: metrics.ctr, CPC: metrics.cpc, Frequency: metrics.frequency, ROAS: metrics.roas, CPL: metrics.cpl }[r.metric]
-                    return (
-                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--red-bg)', border: '1px solid var(--red-bd)', borderRadius: 7, padding: '8px 11px', marginBottom: 5 }}>
-                        <span className={`badge ${r.severity === 'high' ? 'badge-red' : r.severity === 'medium' ? 'badge-amber' : 'badge-green'}`}>{r.severity}</span>
-                        <span style={{ fontSize: 12, color: 'var(--t1)', flex: 1 }}>{r.metric} {r.operator} {r.value} → <strong>{r.action}</strong></span>
-                        <span style={{ fontSize: 11, color: 'var(--t3)' }}>current: {val ?? '—'}</span>
-                      </div>
-                    )
-                  })}
+                  <div style={{ fontSize: 13, color: 'var(--on-surface-v)', marginBottom: 12, fontWeight: 500 }}>
+                    <span style={{ color: 'var(--error)', fontWeight: 800 }}>{testResult.length} Policies Triggered</span> against current campaign telemetry:
+                  </div>
+                  <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
+                    {testResult.map(r => {
+                      const val = { CTR: metrics.ctr, CPC: metrics.cpc, Frequency: metrics.frequency, ROAS: metrics.roas, CPL: metrics.cpl, Spend: metrics.spend, Conversions: metrics.conversions }[r.metric]
+                      return (
+                        <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface-low)', border: '1px solid rgba(186,26,26,0.1)', borderRadius: 10, padding: '10px 14px' }}>
+                          <span className={`badge ${r.severity === 'high' ? 'badge-red' : 'badge-amber'}`} style={{fontSize: 9}}>{r.severity}</span>
+                          <div style={{ fontSize: 13, color: 'var(--on-surface)', flex: 1, fontWeight: 500 }}>
+                             {r.metric} <span style={{color: 'var(--primary)', fontWeight: 800}}>{r.operator}</span> {r.value} → <span style={{fontWeight: 800}}>{r.action}</span>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                             <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--on-surface)' }}>{val ?? '—'}</div>
+                             <div style={{ fontSize: 9, color: 'var(--outline)', textTransform: 'uppercase' }}>Current</div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>}
           </div>
         </div>

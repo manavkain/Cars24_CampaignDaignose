@@ -3,127 +3,128 @@ import { useState } from 'react'
 import { useApp } from '../AppContext'
 
 export default function Settings() {
-  const { settings, saveSettings, log } = useApp()
-  const [form, setForm] = useState({ ...settings })
+  const { settings, saveSettings, setLog, setLogicRules, setMetrics } = useApp()
+  const [form, setForm] = useState(settings)
   const [showKey, setShowKey] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  function save() { saveSettings(form); setSaved(true); setTimeout(() => setSaved(false), 2000) }
-  function setT(metric, bound, v) {
-    setForm(f => ({ ...f, thresholds: { ...f.thresholds, [metric]: { ...f.thresholds[metric], [bound]: parseFloat(v) || 0 } } }))
+  function save() {
+    saveSettings(form)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
   }
 
-  const tRows = [
-    { k:'ctr',       l:'CTR',       u:'%', note:'Higher = better' },
-    { k:'cpc',       l:'CPC',       u:'₹', note:'Lower = better' },
-    { k:'cpl',       l:'CPL',       u:'₹', note:'Lower = better' },
-    { k:'roas',      l:'ROAS',      u:'x', note:'Higher = better' },
-    { k:'frequency', l:'Frequency', u:'',  note:'Lower = better' },
-  ]
+  function resetAll() {
+    if (!confirm('Are you sure you want to reset all data? This will clear logs and settings.')) return
+    localStorage.clear()
+    window.location.reload()
+  }
+
+  function clearLog() {
+    if (!confirm('Clear all improvement logs?')) return
+    setLog([])
+    localStorage.setItem('ago_log', JSON.stringify([]))
+  }
 
   return (
-    <div style={{ maxWidth: 660, display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--t1)', margin: 0 }}>Settings</h2>
-        <p style={{ fontSize: 13, color: 'var(--t3)', marginTop: 4 }}>API keys, thresholds, and app configuration.</p>
+    <div className="animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 16, overflow: 'hidden' }}>
+      <div style={{ flexShrink: 0 }}>
+        <h2 style={{ fontFamily: 'Manrope,sans-serif', fontSize: 28, fontWeight: 800, color: 'var(--on-surface)', margin: 0, letterSpacing: '-0.02em' }}>Platform Configuration</h2>
+        <p style={{ fontSize: 14, color: 'var(--on-surface-v)', marginTop: 4 }}>Manage your curator profile, fine-tune notification thresholds, and configure external data pipelines.</p>
       </div>
 
-      {/* API */}
-      <div className="card">
-        <div className="card-header"><span className="card-title">API Configuration</span></div>
-        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <label>Gemini API Key</label>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <input type={showKey ? 'text' : 'password'} value={form.geminiKey} onChange={e => setForm(f => ({ ...f, geminiKey: e.target.value }))} placeholder="AIza..." />
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowKey(!showKey)} style={{ flexShrink: 0 }}>{showKey ? 'Hide' : 'Show'}</button>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, flex: 1, minHeight: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingRight: 4 }}>
+          {/* API Keys */}
+          <div className="card">
+            <div className="card-header"><span className="card-title">API Configuration</span></div>
+            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <label>Gemini API Key</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input type={showKey ? 'text' : 'password'} value={form.geminiKey} onChange={e => setForm({ ...form, geminiKey: e.target.value })} placeholder="Enter Gemini key..." style={{ flex: 1 }} />
+                  <button className="btn btn-ghost" onClick={() => setShowKey(!showKey)} style={{ width: 60, padding: 0, justifyContent: 'center' }}>{showKey ? 'Hide' : 'Show'}</button>
+                </div>
+                <p style={{ fontSize: 11, color: 'var(--outline)', marginTop: 6 }}>Free key at <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>aistudio.google.com</a> • Stored locally only.</p>
+              </div>
+              <div>
+                <label>Make.com Webhook URL</label>
+                <input value={form.webhookUrl} onChange={e => setForm({ ...form, webhookUrl: e.target.value })} placeholder="https://hook.make.com/..." />
+                <p style={{ fontSize: 11, color: 'var(--outline)', marginTop: 6 }}>Used to export Improvement Log → Airtable.</p>
+              </div>
             </div>
-            <span style={{ fontSize: 11, color: 'var(--t3)', marginTop: 3, display: 'block' }}>Free key at aistudio.google.com · Stored locally only</span>
           </div>
-          <div>
-            <label>Make.com Webhook URL</label>
-            <input value={form.webhookUrl} onChange={e => setForm(f => ({ ...f, webhookUrl: e.target.value }))} placeholder="https://hook.make.com/..." />
-            <span style={{ fontSize: 11, color: 'var(--t3)', marginTop: 3, display: 'block' }}>Used to export Improvement Log → Airtable</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Sheets template */}
-      <div className="card">
-        <div className="card-header"><span className="card-title">Google Sheets Format</span></div>
-        <div className="card-body">
-          <p style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 10 }}>Row 1 = headers (exact), Row 2 = your data. Sheet must be public.</p>
-          <div style={{ background: 'var(--bg-2)', borderRadius: 7, padding: 10, fontFamily: 'monospace', fontSize: 10, color: 'var(--t2)', lineHeight: 1.7, overflowX: 'auto', border: '1px solid var(--border)' }}>
-            <div style={{ color: 'var(--t4)' }}># Row 1 — Headers</div>
-            <div>CTR,CPC,CPL,ROAS,Frequency,Spend,Conversions,Impressions,Clicks,Campaign,Platform</div>
-            <div style={{ color: 'var(--t4)', marginTop: 6 }}># Row 2 — Values</div>
-            <div>1.8,42,380,2.4,4.7,45000,118,512000,9216,Cars24 Q2,Meta</div>
+          {/* Thresholds */}
+          <div className="card">
+            <div className="card-header"><span className="card-title">Alert Thresholds</span></div>
+            <div className="card-body">
+               <div style={{display:'grid', gridTemplateColumns:'1fr 80px 80px 100px', gap:10, alignItems:'center', marginBottom:12}}>
+                  <div style={{fontSize:10, fontWeight:800, color:'var(--outline)', textTransform:'uppercase'}}>Metric</div>
+                  <div style={{fontSize:10, fontWeight:800, color:'var(--outline)', textTransform:'uppercase'}}>Green</div>
+                  <div style={{fontSize:10, fontWeight:800, color:'var(--outline)', textTransform:'uppercase'}}>Amber</div>
+                  <div style={{fontSize:10, fontWeight:800, color:'var(--outline)', textTransform:'uppercase'}}>Note</div>
+               </div>
+               {Object.entries(form.thresholds).map(([key, val]) => (
+                 <div key={key} style={{display:'grid', gridTemplateColumns:'1fr 80px 80px 100px', gap:10, alignItems:'center', marginBottom:8, background:'var(--surface-low)', padding:'6px 10px', borderRadius:8}}>
+                    <span style={{fontSize:13, fontWeight:700, color:'var(--on-surface)', textTransform:'uppercase'}}>{key}%</span>
+                    <input type="number" value={val.green} onChange={e => setForm({...form, thresholds:{...form.thresholds, [key]:{...val, green:parseFloat(e.target.value)}}})} style={{padding:'4px 8px', fontSize:12}} />
+                    <input type="number" value={val.amber} onChange={e => setForm({...form, thresholds:{...form.thresholds, [key]:{...val, amber:parseFloat(e.target.value)}}})} style={{padding:'4px 8px', fontSize:12}} />
+                    <span style={{fontSize:11, color:'var(--outline)'}}>{key==='ctr'||key==='roas'?'Higher=Better':'Lower=Better'}</span>
+                 </div>
+               ))}
+            </div>
           </div>
-          <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}
-            onClick={() => navigator.clipboard.writeText('CTR,CPC,CPL,ROAS,Frequency,Spend,Conversions,Impressions,Clicks,Campaign,Platform\n1.8,42,380,2.4,4.7,45000,118,512000,9216,Cars24 Q2,Meta')}>
-            ⎘ Copy Template
+
+          <button className="btn btn-primary" onClick={save} style={{ width: 'fit-content', padding: '10px 32px' }}>
+            {saved ? '✓ Saved' : 'Save Configuration'}
           </button>
         </div>
-      </div>
 
-      {/* Thresholds */}
-      <div className="card">
-        <div className="card-header"><span className="card-title">Health Thresholds</span><span style={{ fontSize: 11, color: 'var(--t3)' }}>Controls metric card colors</span></div>
-        <div className="card-body">
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-            <thead>
-              <tr>{['Metric','Green (good)','Amber (watch)','Note'].map(h => (
-                <th key={h} style={{ padding: '6px 8px', textAlign: 'left', fontSize: 10, fontWeight: 600, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em', borderBottom: '1px solid var(--border)' }}>{h}</th>
-              ))}</tr>
-            </thead>
-            <tbody>
-              {tRows.map(row => (
-                <tr key={row.k} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '8px', fontWeight: 500 }}>{row.l} {row.u}</td>
-                  <td style={{ padding: '8px' }}><input type="number" step="any" value={form.thresholds[row.k]?.green ?? ''} onChange={e => setT(row.k,'green',e.target.value)} style={{ width: 72, fontSize: 12 }} /></td>
-                  <td style={{ padding: '8px' }}><input type="number" step="any" value={form.thresholds[row.k]?.amber ?? ''} onChange={e => setT(row.k,'amber',e.target.value)} style={{ width: 72, fontSize: 12 }} /></td>
-                  <td style={{ padding: '8px', fontSize: 11, color: 'var(--t3)' }}>{row.note}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+           {/* Sheets help */}
+           <div className="card">
+             <div className="card-header"><span className="card-title">Data Format Guide</span></div>
+             <div className="card-body">
+               <div style={{ background: 'var(--surface-low)', padding: 12, borderRadius: 8, fontSize: 11, fontFamily: 'monospace', color: 'var(--on-surface-v)', lineHeight: 1.5 }}>
+                 # Row 1: Headers<br/>
+                 CTR,CPC,CPL,ROAS,Spend,Conv...<br/><br/>
+                 # Row 2: Values<br/>
+                 1.8,42,380,2.4,45000,118...
+               </div>
+               <button className="btn btn-ghost btn-xs" style={{marginTop:12, width:'100%', justifyContent:'center'}} onClick={() => navigator.clipboard.writeText("CTR,CPC,CPL,ROAS,Frequency,Spend,Conversions,Impressions,Clicks,Campaign,Platform\n1.8,42,380,2.4,4.7,45000,118,512000,9216,New Cars Q2,Meta")}>Copy Template</button>
+             </div>
+           </div>
+
+           {/* Danger zone */}
+           <div className="card" style={{ border: '1px solid rgba(186,26,26,0.15)' }}>
+              <div className="card-header" style={{ background: 'rgba(186,26,26,0.03)' }}><span className="card-title" style={{ color: 'var(--error)' }}>Danger Zone</span></div>
+              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <p style={{ fontSize: 12, color: 'var(--on-surface-v)', lineHeight: 1.4 }}>Critical actions that cannot be undone.</p>
+                <button className="btn btn-ghost btn-xs" style={{ color: 'var(--error)', width: '100%', justifyContent: 'center' }} onClick={clearLog}>Clear Improvement Log</button>
+                <button className="btn btn-ghost btn-xs" style={{ color: 'var(--error)', width: '100%', justifyContent: 'center' }} onClick={resetAll}>Reset All Data</button>
+              </div>
+           </div>
+
+           {/* Stats */}
+           <div className="card">
+              <div className="card-header"><span className="card-title">System Telemetry</span></div>
+              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  { l:'Platform Version', v:'v2.4.1-beta' },
+                  { l:'AI Engine', v:'Curator-X9' },
+                  { l:'Region', v:'us-east-1' },
+                  { l:'Gemini', v: settings.geminiKey ? 'Connected' : 'Mock Mode', c: settings.geminiKey ? '#16a34a' : 'var(--orange)' }
+                ].map(s => (
+                  <div key={s.l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                    <span style={{ color: 'var(--outline)', fontWeight: 600 }}>{s.l}</span>
+                    <span style={{ color: s.c || 'var(--on-surface)', fontWeight: 700 }}>{s.v}</span>
+                  </div>
+                ))}
+              </div>
+           </div>
         </div>
       </div>
-
-      {/* Continuous */}
-      <div className="card">
-        <div className="card-header"><span className="card-title">Continuous Mode</span></div>
-        <div className="card-body">
-          <label>Re-diagnose interval</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {[5,15,30,60].map(m => (
-              <button key={m} onClick={() => setForm(f => ({ ...f, refreshInterval: m }))}
-                className={`btn btn-sm ${form.refreshInterval === m ? 'btn-blue' : 'btn-ghost'}`}>
-                {m < 60 ? `${m}m` : '1h'}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Danger */}
-      <div className="card" style={{ borderColor: 'var(--red-bd)' }}>
-        <div className="card-header" style={{ background: 'var(--red-bg)' }}><span className="card-title" style={{ color: 'var(--red)' }}>Danger Zone</span></div>
-        <div className="card-body" style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)', borderColor: 'var(--red-bd)' }}
-            onClick={() => { if (confirm(`Clear all ${log.length} log entries?`)) { localStorage.removeItem('ago_log'); location.reload() } }}>
-            Clear Log ({log.length} entries)
-          </button>
-          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)', borderColor: 'var(--red-bd)' }}
-            onClick={() => { if (confirm('Reset all settings?')) { localStorage.clear(); location.reload() } }}>
-            Reset All
-          </button>
-        </div>
-      </div>
-
-      <button className="btn btn-primary" onClick={save} style={{ alignSelf: 'flex-start' }}>
-        {saved ? '✓ Saved' : 'Save Settings'}
-      </button>
     </div>
   )
 }

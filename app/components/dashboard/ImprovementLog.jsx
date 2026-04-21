@@ -2,65 +2,110 @@
 import { useState } from 'react'
 import { useApp } from '../AppContext'
 
-const RS = { up: { l: '↑ Up', c: 'var(--green)', bg: 'var(--green-bg)', bd: 'var(--green-bd)' }, down: { l: '↓ Down', c: 'var(--red)', bg: 'var(--red-bg)', bd: 'var(--red-bd)' }, flat: { l: '→ Flat', c: 'var(--t3)', bg: 'var(--bg-3)', bd: 'var(--border)' }, pending: { l: '⏳ Pending', c: 'var(--amber)', bg: 'var(--amber-bg)', bd: 'var(--amber-bd)' } }
+const RS={
+  up:    {l:'↑ Up',    icon:'trending_up',   c:'#155724', bg:'#d4edda'},
+  down:  {l:'↓ Down',  icon:'trending_down',  c:'var(--on-error-c)', bg:'var(--error-c)'},
+  flat:  {l:'→ Flat',  icon:'trending_flat',  c:'var(--outline)', bg:'var(--surface-high)'},
+  pending:{l:'Pending', icon:'schedule',      c:'var(--orange-dark)', bg:'#ffeee2'},
+}
 
-export default function ImprovementLog() {
-  const { log, updateLogEntry, exportToAirtable } = useApp()
-  const [editId, setEditId] = useState(null)
-  const [editForm, setEditForm] = useState({})
-  const [exporting, setExporting] = useState(false)
-  const deployed = log.length
-  const positive = log.filter(l => l.result === 'up').length
-  const winRate = deployed > 0 ? Math.round(positive / deployed * 100) : 0
+export default function ImprovementLog(){
+  const {log,updateLogEntry,exportToAirtable}=useApp()
+  const [editId,setEditId]=useState(null)
+  const [editForm,setEditForm]=useState({})
+  const [exporting,setExporting]=useState(false)
 
-  async function doExport() {
+  const deployed=log.length
+  const positive=log.filter(l=>l.result==='up').length
+  const winRate=deployed>0?Math.round(positive/deployed*100):0
+
+  async function doExport(){
     setExporting(true)
-    try { await exportToAirtable(); alert('Exported!') } catch (e) { alert(e.message) }
-    finally { setExporting(false) }
+    try{await exportToAirtable();alert('Exported to Airtable!')}
+    catch(e){alert(e.message)}
+    finally{setExporting(false)}
   }
 
   return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="card" style={{display:'flex',flexDirection:'column',height:'100%'}}>
       <div className="card-header">
-        <span className="card-title">Improvement Log</span>
-        <button className="btn btn-ghost btn-xs" onClick={doExport} disabled={exporting}>
-          {exporting ? <span className="animate-spin">◌</span> : '↗'} Airtable
-        </button>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <span className="material-symbols-outlined" style={{fontSize:16,color:'var(--secondary)',fontVariationSettings:"'FILL' 1"}}>history_edu</span>
+          <span className="card-title">Improvement Log</span>
+        </div>
+        <div style={{display:'flex',gap:6}}>
+          <button className="btn btn-ghost btn-xs" onClick={doExport} disabled={exporting}>
+            {exporting?<span className="animate-spin">◌</span>:<span className="material-symbols-outlined" style={{fontSize:14}}>upload</span>}
+            Export
+          </button>
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 8, padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg-2)' }}>
-        {[{ l: 'Deployed', v: deployed }, { l: 'Positive', v: positive, c: 'var(--green)' }, { l: 'Win Rate', v: `${winRate}%`, c: winRate >= 60 ? 'var(--green)' : 'var(--amber)' }, { l: 'Pending', v: log.filter(l => l.result === 'pending').length, c: 'var(--amber)' }].map(s => (
-          <div key={s.l} style={{ flex: 1, background: 'var(--bg)', borderRadius: 8, padding: '8px', textAlign: 'center', border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: 17, fontWeight: 700, color: s.c || 'var(--t1)' }}>{s.v}</div>
-            <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 1 }}>{s.l}</div>
+
+      {/* Stats strip — Stitch: tonal background */}
+      <div style={{display:'flex',gap:0,borderBottom:'1px solid rgba(192,199,211,0.1)',background:'var(--surface-low)'}}>
+        {[
+          {l:'Deployed',v:deployed},
+          {l:'Positive',v:positive,c:'#155724'},
+          {l:'Win Rate',v:`${winRate}%`,c:winRate>=60?'#155724':'var(--orange-dark)'},
+          {l:'Pending',v:log.filter(l=>l.result==='pending').length,c:'var(--orange-dark)'},
+        ].map((s,i)=>(
+          <div key={s.l} style={{flex:1,padding:'12px 14px',textAlign:'center',borderRight:i<3?'1px solid rgba(192,199,211,0.1)':'none'}}>
+            <div style={{fontFamily:'Manrope,sans-serif',fontSize:20,fontWeight:800,color:s.c||'var(--on-surface)',letterSpacing:'-0.02em'}}>{s.v}</div>
+            <div style={{fontSize:10,color:'var(--outline)',marginTop:2,fontWeight:600,textTransform:'uppercase',letterSpacing:'.05em'}}>{s.l}</div>
           </div>
         ))}
       </div>
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        {log.length === 0 ? (
-          <div className="empty-state"><div className="icon">◎</div><div className="title">No fixes deployed</div><div className="sub">Deploy a fix from Fix Generator to start tracking.</div></div>
-        ) : (
+
+      <div style={{flex:1,overflow:'auto'}}>
+        {log.length===0?(
+          <div className="empty-state">
+            <span className="material-symbols-outlined" style={{fontSize:40,opacity:.3,color:'var(--primary)'}}>history_edu</span>
+            <div className="title">No fixes deployed yet</div>
+            <div className="sub">Deploy a fix to start tracking improvements.</div>
+          </div>
+        ):(
           <table className="data-table">
-            <thead><tr><th>Date</th><th>Issue</th><th>Fix</th><th>Before</th><th>After</th><th>Result</th><th></th></tr></thead>
+            <thead>
+              <tr>
+                {['Date','Issue','Fix Applied','Before','After','Impact',''].map(h=>(
+                  <th key={h}>{h}</th>
+                ))}
+              </tr>
+            </thead>
             <tbody>
-              {log.map(entry => {
-                const rs = RS[entry.result] || RS.pending
-                const isEd = editId === entry.id
+              {log.map(entry=>{
+                const rs=RS[entry.result]||RS.pending
+                const isEd=editId===entry.id
                 return (
                   <tr key={entry.id}>
-                    <td style={{ color: 'var(--t3)', whiteSpace: 'nowrap', fontSize: 11 }}>{entry.date}</td>
-                    <td style={{ color: 'var(--t2)', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.issue}</td>
-                    <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--t1)' }}>{entry.fixSummary}</td>
-                    <td style={{ color: 'var(--t3)', whiteSpace: 'nowrap' }}>{entry.before}</td>
-                    <td>{isEd ? <input value={editForm.after} onChange={e => setEditForm(f => ({ ...f, after: e.target.value }))} style={{ width: 90, fontSize: 11, padding: '3px 6px' }} /> : <span style={{ color: entry.after ? 'var(--t1)' : 'var(--t4)' }}>{entry.after || '—'}</span>}</td>
+                    <td style={{color:'var(--outline)',whiteSpace:'nowrap',fontSize:12,fontWeight:500}}>{entry.date}</td>
+                    <td style={{maxWidth:100,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        <span className="dot" style={{background:entry.fixType==='Creative'?'var(--primary)':entry.fixType==='Audience'?'#16a34a':'var(--orange)',flexShrink:0}}/>
+                        <span style={{fontSize:12,color:'var(--on-surface)',fontWeight:500}}>{entry.issue}</span>
+                      </div>
+                    </td>
+                    <td style={{maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                      <span style={{display:'inline-block',background:'rgba(194,220,255,0.4)',color:'var(--on-secondary-c)',padding:'3px 10px',borderRadius:99,fontSize:11,fontWeight:500}}>{entry.fixSummary}</span>
+                    </td>
+                    <td style={{color:'var(--outline)',fontSize:12,whiteSpace:'nowrap'}}>{entry.before}</td>
                     <td>
                       {isEd
-                        ? <select value={editForm.result} onChange={e => setEditForm(f => ({ ...f, result: e.target.value }))} style={{ width: 90, fontSize: 11, padding: '3px 5px' }}>{Object.keys(RS).map(k => <option key={k} value={k}>{k}</option>)}</select>
-                        : <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99, background: rs.bg, color: rs.c, border: `1px solid ${rs.bd}` }}>{rs.l}</span>}
+                        ?<input value={editForm.after} onChange={e=>setEditForm(f=>({...f,after:e.target.value}))} style={{width:90,fontSize:11,padding:'4px 8px'}}/>
+                        :<span style={{color:entry.after?'var(--on-surface)':'var(--outline)',fontSize:12}}>{entry.after||'—'}</span>}
                     </td>
                     <td>
                       {isEd
-                        ? <button className="btn btn-blue btn-xs" onClick={() => { updateLogEntry(entry.id, editForm); setEditId(null) }}>Save</button>
-                        : <button className="btn btn-ghost btn-xs" onClick={() => { setEditId(entry.id); setEditForm({ after: entry.after, result: entry.result }) }}>Edit</button>}
+                        ?<select value={editForm.result} onChange={e=>setEditForm(f=>({...f,result:e.target.value}))} style={{width:95,fontSize:11,padding:'4px 6px'}}>{Object.keys(RS).map(k=><option key={k} value={k}>{k}</option>)}</select>
+                        :<div style={{display:'flex',alignItems:'center',gap:5,background:rs.bg,padding:'3px 10px',borderRadius:99,width:'fit-content'}}>
+                          <span className="material-symbols-outlined" style={{fontSize:12,color:rs.c}}>{rs.icon}</span>
+                          <span style={{fontSize:11,fontWeight:700,color:rs.c}}>{rs.l}</span>
+                        </div>}
+                    </td>
+                    <td>
+                      {isEd
+                        ?<button className="btn btn-primary btn-xs" onClick={()=>{updateLogEntry(entry.id,editForm);setEditId(null)}}>Save</button>
+                        :<button className="btn btn-ghost btn-xs" onClick={()=>{setEditId(entry.id);setEditForm({after:entry.after,result:entry.result})}}>Edit</button>}
                     </td>
                   </tr>
                 )

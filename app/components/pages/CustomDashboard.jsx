@@ -7,121 +7,103 @@ import FixGenerator from '../dashboard/FixGenerator'
 import ImprovementLog from '../dashboard/ImprovementLog'
 
 const WIDGETS = [
-  { id: 'pulse',     label: 'Campaign Pulse',  desc: 'Live metric cards + input',       color: 'var(--blue)' },
-  { id: 'diagnosis', label: 'Diagnosis Feed',  desc: 'AI issues ranked by severity',    color: 'var(--red)' },
-  { id: 'fix',       label: 'Fix Generator',   desc: 'Copy + audience + bidding recs',  color: 'var(--green)' },
-  { id: 'log',       label: 'Improvement Log', desc: 'Before/after tracking table',     color: 'var(--amber)' },
+  { id: 'pulse', name: 'Campaign Pulse', component: CampaignPulse },
+  { id: 'diagnosis', name: 'Diagnostic Stream', component: DiagnosisFeed },
+  { id: 'fix', name: 'Fix Generator', component: FixGenerator },
+  { id: 'log', name: 'Improvement Log', component: ImprovementLog },
 ]
-
-const LAYOUTS = [
-  { id: '1col', label: '1 Column', cols: 1 },
-  { id: '2col', label: '2 Column', cols: 2 },
-  { id: '3col', label: '3 Column', cols: 3 },
-]
-
-function renderWidget(id) {
-  switch (id) {
-    case 'pulse':     return <CampaignPulse />
-    case 'diagnosis': return <DiagnosisFeed />
-    case 'fix':       return <FixGenerator />
-    case 'log':       return <ImprovementLog />
-  }
-}
 
 export default function CustomDashboard() {
   const { settings, saveSettings } = useApp()
-  const [layout, setLayout] = useState(settings.dashboardLayout || ['pulse','diagnosis','fix','log'])
-  const [cols, setCols] = useState(2)
-  const [editing, setEditing] = useState(false)
+  const [layout, setLayout] = useState(settings.dashboardLayout || ['pulse', 'diagnosis', 'fix', 'log'])
+  const [isConfiguring, setIsConfiguring] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  function toggle(id) {
-    setLayout(prev => prev.includes(id) ? prev.length > 1 ? prev.filter(w => w !== id) : prev : [...prev, id])
-  }
-  function move(id, dir) {
-    const i = layout.indexOf(id); if (i < 0) return
-    const n = [...layout]
-    const j = dir === 'up' ? i - 1 : i + 1
-    if (j < 0 || j >= n.length) return
-    ;[n[i], n[j]] = [n[j], n[i]]
+  function move(idx, dir) {
+    const n = [...layout]; const target = idx + dir
+    if (target < 0 || target >= n.length) return
+    [n[idx], n[target]] = [n[target], n[idx]]
     setLayout(n)
   }
-  function save() { saveSettings({ dashboardLayout: layout }); setSaved(true); setTimeout(() => setSaved(false), 2000) }
+
+  function toggle(id) {
+    if (layout.includes(id)) {
+      if (layout.length === 1) return; setLayout(layout.filter(x => x !== id))
+    } else {
+      setLayout([...layout, id])
+    }
+  }
+
+  function save() {
+    saveSettings({ ...settings, dashboardLayout: layout })
+    setSaved(true)
+    setTimeout(() => { setSaved(false); setIsConfiguring(false) }, 1500)
+  }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, height: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--t1)', margin: 0 }}>Custom Dashboard</h2>
-          <p style={{ fontSize: 13, color: 'var(--t3)', marginTop: 4 }}>Configure which panels appear and how they're arranged.</p>
+          <h2 style={{ fontFamily: 'Manrope,sans-serif', fontSize: 32, fontWeight: 800, color: 'var(--on-surface)', margin: 0, letterSpacing: '-0.02em' }}>Dashboard Architect</h2>
+          <p style={{ fontSize: 15, color: 'var(--on-surface-v)', marginTop: 8 }}>Customize your diagnostic cockpit. Rearrange and toggle visualization modules.</p>
         </div>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          {saved && <span style={{ fontSize: 12, color: 'var(--green)' }}>✓ Saved</span>}
-          <button className={`btn btn-sm ${editing ? 'btn-blue' : 'btn-ghost'}`} onClick={() => setEditing(!editing)}>{editing ? '✓ Done' : '⚙ Configure'}</button>
-          <button className="btn btn-primary btn-sm" onClick={save}>Apply Layout</button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className={`btn ${isConfiguring ? 'btn-ghost' : 'btn-primary'}`} onClick={() => setIsConfiguring(!isConfiguring)}>
+             <span className="material-symbols-outlined" style={{fontSize: 18}}>{isConfiguring ? 'visibility' : 'architecture'}</span>
+             {isConfiguring ? 'Preview Mode' : 'Configure Layout'}
+          </button>
+          {isConfiguring && (
+            <button className="btn btn-orange" onClick={save}>
+               {saved ? '✓ Architecture Saved' : 'Apply Layout'}
+            </button>
+          )}
         </div>
       </div>
 
-      {editing ? (
-        <div style={{ display: 'flex', gap: 12, flex: 1, overflow: 'hidden', minHeight: 0 }}>
-          {/* Widget picker */}
-          <div className="card" style={{ width: 210, flexShrink: 0, overflow: 'auto' }}>
-            <div className="card-header"><span className="card-title">Widgets</span></div>
-            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {WIDGETS.map(w => {
-                const on = layout.includes(w.id)
-                return (
-                  <div key={w.id} onClick={() => toggle(w.id)} style={{ padding: '9px 10px', borderRadius: 8, cursor: 'pointer', border: `1px solid ${on ? 'var(--blue-mid)' : 'var(--border)'}`, background: on ? 'var(--blue-light)' : 'var(--bg)', transition: 'all .15s' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: on ? 'var(--blue)' : 'var(--t2)' }}>{w.label}</span>
-                      <span style={{ fontSize: 12, color: on ? 'var(--green)' : 'var(--t4)' }}>{on ? '✓' : '+'}</span>
+      {isConfiguring ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+          {WIDGETS.map((w, idx) => {
+            const active = layout.includes(w.id)
+            const lIdx = layout.indexOf(w.id)
+            return (
+              <div key={w.id} className="card animate-fade-in" style={{ border: active ? '1px solid var(--primary-c)' : '1px solid rgba(192,199,211,0.2)', opacity: active ? 1 : 0.6, background: active ? 'var(--surface-white)' : 'var(--surface-low)', transition: 'all .25s' }}>
+                <div className="card-header" style={{background: active ? 'var(--primary-fixed)' : 'transparent', borderBottom: active ? '1px solid rgba(0,88,148,0.1)' : 'none'}}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: active ? 'var(--surface-white)' : 'var(--surface-high)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                       <span className="material-symbols-outlined" style={{fontSize: 18, color: active ? 'var(--primary)' : 'var(--outline)'}}>widgets</span>
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--t3)' }}>{w.desc}</div>
+                    <span className="card-title" style={{color: active ? 'var(--primary)' : 'var(--outline)'}}>{w.name}</span>
                   </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Layout + order */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden', minHeight: 0 }}>
-            {/* Column picker */}
-            <div className="card" style={{ flexShrink: 0 }}>
-              <div className="card-header"><span className="card-title">Layout</span></div>
-              <div className="card-body" style={{ display: 'flex', gap: 8 }}>
-                {LAYOUTS.map(l => (
-                  <div key={l.id} onClick={() => setCols(l.cols)} style={{ flex: 1, padding: 10, borderRadius: 8, cursor: 'pointer', textAlign: 'center', border: `1px solid ${cols === l.cols ? 'var(--blue)' : 'var(--border)'}`, background: cols === l.cols ? 'var(--blue-light)' : 'transparent', fontSize: 12, fontWeight: cols === l.cols ? 600 : 400, color: cols === l.cols ? 'var(--blue)' : 'var(--t2)', transition: 'all .15s' }}>
-                    {l.label}
+                  <div className={`toggle-track ${active ? 'on' : ''}`} onClick={() => toggle(w.id)} style={{ cursor: 'pointer' }}>
+                    <div className="toggle-thumb" />
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Order */}
-            <div className="card" style={{ flex: 1, overflow: 'auto' }}>
-              <div className="card-header"><span className="card-title">Order</span><span style={{ fontSize: 11, color: 'var(--t4)' }}>Use arrows to reorder</span></div>
-              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {layout.map((id, idx) => {
-                  const w = WIDGETS.find(x => x.id === id)
-                  return (
-                    <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 8 }}>
-                      <span style={{ fontSize: 12, color: 'var(--t4)', width: 20, textAlign: 'center', fontWeight: 600 }}>{idx + 1}</span>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: w?.color, flexShrink: 0 }} />
-                      <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--t1)' }}>{w?.label}</span>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        <button onClick={() => move(id,'up')} style={{ padding: '2px 6px', borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg)', cursor: 'pointer', fontSize: 10, color: 'var(--t2)' }}>▲</button>
-                        <button onClick={() => move(id,'dn')} style={{ padding: '2px 6px', borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg)', cursor: 'pointer', fontSize: 10, color: 'var(--t2)' }}>▼</button>
-                      </div>
+                </div>
+                <div className="card-body">
+                  <div style={{ fontSize: 13, color: 'var(--on-surface-v)', marginBottom: 20, lineHeight: 1.5 }}>
+                    Module ID: <code style={{background: 'rgba(0,0,0,0.05)', padding: '2px 5px', borderRadius: 4}}>{w.id}</code><br/>
+                    Status: {active ? <span style={{color: '#16a34a', fontWeight: 700}}>Active</span> : 'Hidden'}
+                  </div>
+                  {active && (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button className="btn btn-ghost btn-sm" style={{flex: 1}} onClick={() => move(lIdx, -1)} disabled={lIdx === 0}>
+                         <span className="material-symbols-outlined" style={{fontSize: 16}}>arrow_back</span> Move Left
+                      </button>
+                      <button className="btn btn-ghost btn-sm" style={{flex: 1}} onClick={() => move(lIdx, 1)} disabled={lIdx === layout.length - 1}>
+                         Move Right <span className="material-symbols-outlined" style={{fontSize: 16}}>arrow_forward</span>
+                      </button>
                     </div>
-                  )
-                })}
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            )
+          })}
         </div>
       ) : (
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 10, overflow: 'auto', alignContent: 'start' }}>
-          {layout.map(id => <div key={id} style={{ minHeight: 280 }}>{renderWidget(id)}</div>)}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, height: '100%', minHeight: 0, overflow: 'auto', paddingBottom: 40 }}>
+          {layout.map(id => {
+            const W = WIDGETS.find(w => w.id === id)?.component
+            return W ? <div key={id} className="animate-fade-in" style={{minHeight: 350}}><W /></div> : null
+          })}
         </div>
       )}
     </div>

@@ -23,15 +23,22 @@ const PAGE_META = {
 
 function AppContent() {
   const [view, setView] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState('Overview')
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const meta = PAGE_META[view] || { title: view, sub: '' }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      <Sidebar view={view} setView={setView} />
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--surface)' }}>
+      <Sidebar 
+        view={view} 
+        setView={(v) => { setView(v); if(v !== 'dashboard') setActiveTab('Overview') }} 
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-        <TopBar title={meta.title} subtitle={meta.sub} />
-        <main style={{ flex: 1, overflow: 'auto', padding: 14 }}>
-          {view === 'dashboard'         && <MainDashboard />}
+        <TopBar title={meta.title} subtitle={meta.sub} activeTab={activeTab} setActiveTab={setActiveTab} />
+        <main style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+          {view === 'dashboard'         && <MainDashboard activeTab={activeTab} />}
           {view === 'ai-chat'           && <AIChat />}
           {view === 'reports'           && <Reports />}
           {view === 'connectors'        && <Connectors />}
