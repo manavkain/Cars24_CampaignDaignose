@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useApp } from '../AppContext'
 
 export default function Settings() {
@@ -7,6 +7,10 @@ export default function Settings() {
   const [form, setForm] = useState(settings)
   const [showKey, setShowKey] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setForm(settings)
+  }, [settings])
 
   function save() {
     saveSettings(form)
@@ -27,14 +31,14 @@ export default function Settings() {
   }
 
   return (
-    <div className="animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 16, overflow: 'hidden' }}>
+    <div className="animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingBottom: 24 }}>
       <div style={{ flexShrink: 0 }}>
         <h2 style={{ fontFamily: 'Manrope,sans-serif', fontSize: 28, fontWeight: 800, color: 'var(--on-surface)', margin: 0, letterSpacing: '-0.02em' }}>Platform Configuration</h2>
         <p style={{ fontSize: 14, color: 'var(--on-surface-v)', marginTop: 4 }}>Manage your curator profile, fine-tune notification thresholds, and configure external data pipelines.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, flex: 1, minHeight: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingRight: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* API Keys */}
           <div className="card">
             <div className="card-header"><span className="card-title">API Configuration</span></div>
