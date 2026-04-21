@@ -1,117 +1,60 @@
 'use client'
 import { useState } from 'react'
 import { useApp } from '../AppContext'
-import { mockDiagnosis } from '../../lib/mockData'
 
-const TABS = ['Creative', 'Audience', 'Bidding', 'Budget']
+const TYPE_LABELS = { creative_fatigue:'Creative Fatigue', audience_saturation:'Audience Saturation', bid_floor:'Bid Floor', budget_pacing:'Budget Pacing', landing_page:'Landing Page' }
+const TABS = ['Creative','Audience','Bidding','Budget']
 
-const TYPE_LABELS = {
-  creative_fatigue: 'Creative Fatigue',
-  audience_saturation: 'Audience Saturation',
-  bid_floor: 'Bid Floor',
-  budget_pacing: 'Budget Pacing',
-  landing_page: 'Landing Page',
-}
+export default function FixGenerator({ selectedId }) {
+  const { diagnosis, addLogEntry, metrics, setPipelineStep } = useApp()
+  const [activeIssue, setActiveIssue] = useState(selectedId || '1')
+  const [tab, setTab] = useState('Creative')
+  const [toast, setToast] = useState('')
 
-function CopyVariant({ variant, index, onDeploy }) {
-  const [copied, setCopied] = useState(false)
-  function handleCopy(text) {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
-  return (
-    <div style={{
-      background: 'var(--bg-card)', border: '1px solid var(--border)',
-      borderRadius: 8, padding: 10, marginBottom: 6,
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-        <span className="badge badge-indigo">{variant.label}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Variant {String.fromCharCode(65 + index)}</span>
-      </div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
-        {variant.headline}
-      </div>
-      <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 8 }}>
-        {variant.body}
-      </div>
-      <div style={{ display: 'flex', gap: 5 }}>
-        <button className="btn btn-secondary" style={{ fontSize: 10, padding: '3px 8px' }}
-          onClick={() => handleCopy(`${variant.headline}\n\n${variant.body}`)}>
-          {copied ? '✓ Copied' : '⎘ Copy'}
-        </button>
-        <button className="btn btn-primary" style={{ fontSize: 10, padding: '3px 8px' }}
-          onClick={() => onDeploy(variant)}>
-          ↗ Deploy
-        </button>
-      </div>
-    </div>
-  )
-}
+  const issues = diagnosis?.issues || []
+  const fixes = diagnosis?.fixes || {}
+  const issue = issues.find(i => i.id === activeIssue) || issues[0]
 
-export default function FixGenerator({ selectedIssueId }) {
-  const { diagnosis, addLogEntry, metrics } = useApp()
-  const [activeTab, setActiveTab] = useState('Creative')
-  const [activeIssueId, setActiveIssueId] = useState(selectedIssueId || '1')
-  const [deployedMsg, setDeployedMsg] = useState('')
-
-  const data = diagnosis || mockDiagnosis
-  const issues = data.issues || []
-  const fixes = data.fixes || {}
-  const activeIssue = issues.find(i => i.id === activeIssueId) || issues[0]
-
-  function handleDeploy(variant) {
-    const entry = {
+  function deploy(variant) {
+    addLogEntry({
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
-      issue: TYPE_LABELS[activeIssue?.type] || activeIssue?.type,
-      fixType: activeTab,
-      fixSummary: `${activeTab}: ${variant.label || ''} — ${variant.headline || variant.recommendation || variant.brief || JSON.stringify(variant)}`.slice(0, 80),
+      issue: TYPE_LABELS[issue?.type] || issue?.type || 'Unknown',
+      fixType: tab,
+      fixSummary: `${tab}: ${variant.label || ''} — ${(variant.headline || variant.recommendation || variant.brief || '').slice(0, 60)}`,
       before: `CTR ${metrics.ctr}% / CPL ₹${metrics.cpl}`,
-      after: '',
-      result: 'pending',
-      notes: '',
-    }
-    addLogEntry(entry)
-    setDeployedMsg(`✓ Deployed & logged! Check Improvement Log.`)
-    setTimeout(() => setDeployedMsg(''), 3000)
+      after: '', result: 'pending', notes: '',
+    })
+    setToast('✓ Deployed & logged')
+    setTimeout(() => setToast(''), 2500)
+    setPipelineStep('track')
+  }
+
+  function copy(text) {
+    navigator.clipboard.writeText(text)
+    setToast('✓ Copied to clipboard')
+    setTimeout(() => setToast(''), 1500)
   }
 
   return (
-    <div className="panel" style={{ display: 'flex', flexDirection: 'column' }}>
-      <div className="panel-header">
-        <span className="panel-title">Fix Generator</span>
-        {deployedMsg && (
-          <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 500 }}>{deployedMsg}</span>
-        )}
+    <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="card-header">
+        <span className="card-title">Fix Generator</span>
+        {toast && <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 500 }}>{toast}</span>}
       </div>
-
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
         {/* Issue sidebar */}
-        <div style={{
-          width: 140, flexShrink: 0, borderRight: '1px solid var(--border)',
-          padding: 8, overflow: 'auto', background: 'var(--bg-surface)',
-        }}>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Issues</div>
-          {issues.map(issue => {
-            const isActive = issue.id === activeIssueId
-            const color = issue.severity === 'high' ? 'var(--red)' : issue.severity === 'medium' ? 'var(--amber)' : 'var(--green)'
+        <div style={{ width: 148, flexShrink: 0, borderRight: '1px solid var(--border)', background: 'var(--bg-2)', padding: 8, overflow: 'auto' }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.07em', padding: '2px 6px 8px' }}>Issues</div>
+          {issues.map(iss => {
+            const isAct = iss.id === activeIssue
+            const dot = iss.severity === 'high' ? 'var(--red)' : iss.severity === 'medium' ? 'var(--amber)' : 'var(--green)'
             return (
-              <div
-                key={issue.id}
-                onClick={() => setActiveIssueId(issue.id)}
-                style={{
-                  padding: '7px 8px', borderRadius: 6, cursor: 'pointer', marginBottom: 3,
-                  background: isActive ? 'var(--bg-elevated)' : 'transparent',
-                  border: `1px solid ${isActive ? 'var(--border-strong)' : 'transparent'}`,
-                  transition: 'all 0.15s',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: 'var(--text-primary)', fontWeight: isActive ? 500 : 400, lineHeight: 1.3 }}>
-                    {TYPE_LABELS[issue.type] || issue.type}
-                  </span>
+              <div key={iss.id} onClick={() => setActiveIssue(iss.id)}
+                style={{ padding: '7px 8px', borderRadius: 7, cursor: 'pointer', marginBottom: 3, background: isAct ? 'var(--bg)' : 'transparent', border: `1px solid ${isAct ? 'var(--blue-mid)' : 'transparent'}`, transition: 'all .15s', boxShadow: isAct ? 'var(--shadow)' : 'none' }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                  <span className="dot" style={{ background: dot, marginTop: 3, flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: isAct ? 'var(--blue)' : 'var(--t2)', fontWeight: isAct ? 600 : 400, lineHeight: 1.3 }}>{TYPE_LABELS[iss.type] || iss.type}</span>
                 </div>
               </div>
             )
@@ -119,79 +62,63 @@ export default function FixGenerator({ selectedIssueId }) {
         </div>
 
         {/* Fix panel */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
           {/* Tabs */}
-          <div style={{
-            display: 'flex', borderBottom: '1px solid var(--border)',
-            padding: '0 10px', background: 'var(--bg-surface)',
-          }}>
-            {TABS.map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                style={{
-                  padding: '8px 10px', border: 'none', background: 'transparent',
-                  color: activeTab === tab ? 'var(--text-primary)' : 'var(--text-muted)',
-                  fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                  borderBottom: `2px solid ${activeTab === tab ? 'var(--accent)' : 'transparent'}`,
-                  transition: 'all 0.15s',
-                }}
-              >
-                {tab}
-              </button>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg)', paddingLeft: 4 }}>
+            {TABS.map(t => (
+              <button key={t} onClick={() => setTab(t)} style={{
+                padding: '8px 12px', border: 'none', background: 'transparent',
+                color: tab === t ? 'var(--blue)' : 'var(--t3)', fontSize: 12, fontWeight: tab === t ? 600 : 400,
+                cursor: 'pointer', borderBottom: `2px solid ${tab === t ? 'var(--blue)' : 'transparent'}`, transition: 'all .15s', fontFamily: 'inherit',
+              }}>{t}</button>
             ))}
           </div>
 
-          {/* Tab content */}
-          <div className="panel-body" style={{ flex: 1, overflow: 'auto' }}>
-            {activeTab === 'Creative' && (fixes.creative || []).map((v, i) => (
-              <CopyVariant key={i} variant={v} index={i} onDeploy={handleDeploy} />
+          <div className="card-body" style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {tab === 'Creative' && (fixes.creative || []).map((v, i) => (
+              <div key={i} style={{ background: 'var(--bg-2)', borderRadius: 8, border: '1px solid var(--border)', padding: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span className="badge badge-blue">{v.label}</span>
+                  <span style={{ fontSize: 10, color: 'var(--t3)' }}>Variant {String.fromCharCode(65+i)}</span>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)', marginBottom: 5 }}>{v.headline}</div>
+                <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.55, marginBottom: 9 }}>{v.body}</div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button className="btn btn-ghost btn-xs" onClick={() => copy(`${v.headline}\n\n${v.body}`)}>⎘ Copy</button>
+                  <button className="btn btn-primary btn-xs" onClick={() => deploy(v)}>↗ Deploy</button>
+                </div>
+              </div>
             ))}
 
-            {activeTab === 'Audience' && fixes.audience && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {[
-                  { label: 'Target Brief', value: fixes.audience.brief },
-                  { label: 'Exclusions', value: fixes.audience.exclusions },
-                  { label: 'Lookalike Seed', value: fixes.audience.lookalike_seed },
-                ].map(item => (
-                  <div key={item.label} style={{ background: 'var(--bg-card)', borderRadius: 8, padding: 10, border: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{item.label}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>{item.value}</div>
-                    <button className="btn btn-secondary" style={{ fontSize: 10, padding: '3px 8px', marginTop: 7 }}
-                      onClick={() => handleDeploy({ label: item.label, brief: item.value })}>
-                      ↗ Deploy
-                    </button>
-                  </div>
-                ))}
-              </div>
+            {tab === 'Audience' && fixes.audience && (
+              [{ label: 'Target Brief', val: fixes.audience.brief }, { label: 'Exclusions', val: fixes.audience.exclusions }, { label: 'Lookalike Seed', val: fixes.audience.lookalike_seed }].map(item => (
+                <div key={item.label} style={{ background: 'var(--bg-2)', borderRadius: 8, border: '1px solid var(--border)', padding: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{item.label}</div>
+                  <div style={{ fontSize: 12, color: 'var(--t1)', lineHeight: 1.55, marginBottom: 8 }}>{item.val}</div>
+                  <button className="btn btn-primary btn-xs" onClick={() => deploy({ label: item.label, brief: item.val })}>↗ Deploy</button>
+                </div>
+              ))
             )}
 
-            {activeTab === 'Bidding' && fixes.bidding && (
+            {tab === 'Bidding' && fixes.bidding && (
               <div>
-                <div style={{ background: 'var(--bg-card)', borderRadius: 8, padding: 10, border: '1px solid var(--border)', marginBottom: 8 }}>
+                <div style={{ background: 'var(--bg-2)', borderRadius: 8, border: '1px solid var(--border)', padding: 12, marginBottom: 8 }}>
                   <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                    <span className="badge badge-indigo">+{fixes.bidding.delta_pct}% tCPA</span>
-                    <span className={`badge ${fixes.bidding.risk === 'low' ? 'badge-green' : fixes.bidding.risk === 'medium' ? 'badge-amber' : 'badge-red'}`}>
-                      {fixes.bidding.risk} risk
-                    </span>
+                    <span className="badge badge-orange">+{fixes.bidding.delta_pct}% tCPA</span>
+                    <span className={`badge ${fixes.bidding.risk === 'low' ? 'badge-green' : fixes.bidding.risk === 'medium' ? 'badge-amber' : 'badge-red'}`}>{fixes.bidding.risk} risk</span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.6 }}>{fixes.bidding.recommendation}</div>
+                  <div style={{ fontSize: 12, color: 'var(--t1)', lineHeight: 1.6 }}>{fixes.bidding.recommendation}</div>
                 </div>
-                <button className="btn btn-primary" style={{ fontSize: 11 }} onClick={() => handleDeploy(fixes.bidding)}>
-                  ↗ Mark as Deployed
-                </button>
+                <button className="btn btn-primary btn-sm" onClick={() => deploy(fixes.bidding)}>↗ Mark Deployed</button>
               </div>
             )}
 
-            {activeTab === 'Budget' && fixes.budget && (
+            {tab === 'Budget' && fixes.budget && (
               <div>
-                <div style={{ background: 'var(--bg-card)', borderRadius: 8, padding: 10, border: '1px solid var(--border)', marginBottom: 8 }}>
-                  <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.6 }}>{fixes.budget.reallocation_map}</div>
+                <div style={{ background: 'var(--bg-2)', borderRadius: 8, border: '1px solid var(--border)', padding: 12, marginBottom: 8 }}>
+                  <div style={{ fontSize: 12, color: 'var(--t1)', lineHeight: 1.6 }}>{fixes.budget.reallocation_map}</div>
                 </div>
-                <button className="btn btn-primary" style={{ fontSize: 11 }} onClick={() => handleDeploy(fixes.budget)}>
-                  ↗ Mark as Deployed
-                </button>
+                <button className="btn btn-primary btn-sm" onClick={() => deploy(fixes.budget)}>↗ Mark Deployed</button>
               </div>
             )}
           </div>

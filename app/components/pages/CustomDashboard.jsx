@@ -6,181 +6,111 @@ import DiagnosisFeed from '../dashboard/DiagnosisFeed'
 import FixGenerator from '../dashboard/FixGenerator'
 import ImprovementLog from '../dashboard/ImprovementLog'
 
-const ALL_WIDGETS = [
-  { id: 'pulse',     label: 'Campaign Pulse',    desc: 'Live metric cards + input' },
-  { id: 'diagnosis', label: 'Diagnosis Feed',    desc: 'AI issue cards, ranked by severity' },
-  { id: 'fix',       label: 'Fix Generator',     desc: 'Copy variants + audience + bidding' },
-  { id: 'log',       label: 'Improvement Log',   desc: 'Before/after tracking table' },
+const WIDGETS = [
+  { id: 'pulse',     label: 'Campaign Pulse',  desc: 'Live metric cards + input',       color: 'var(--blue)' },
+  { id: 'diagnosis', label: 'Diagnosis Feed',  desc: 'AI issues ranked by severity',    color: 'var(--red)' },
+  { id: 'fix',       label: 'Fix Generator',   desc: 'Copy + audience + bidding recs',  color: 'var(--green)' },
+  { id: 'log',       label: 'Improvement Log', desc: 'Before/after tracking table',     color: 'var(--amber)' },
 ]
 
 const LAYOUTS = [
+  { id: '1col', label: '1 Column', cols: 1 },
   { id: '2col', label: '2 Column', cols: 2 },
   { id: '3col', label: '3 Column', cols: 3 },
-  { id: 'focus', label: 'Focus (1 col)', cols: 1 },
-  { id: 'custom', label: 'Custom', cols: null },
 ]
 
-function WidgetPreview({ id, label }) {
-  const colors = { pulse: '#6366f1', diagnosis: '#ef4444', fix: '#22c55e', log: '#f59e0b' }
-  const icons = { pulse: '↯', diagnosis: '⚠', fix: '✦', log: '◎' }
-  return (
-    <div style={{
-      background: `${colors[id]}18`,
-      border: `1px solid ${colors[id]}44`,
-      borderRadius: 8, padding: '10px 12px',
-      display: 'flex', alignItems: 'center', gap: 8,
-    }}>
-      <span style={{ fontSize: 16, color: colors[id] }}>{icons[id]}</span>
-      <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>{label}</span>
-    </div>
-  )
+function renderWidget(id) {
+  switch (id) {
+    case 'pulse':     return <CampaignPulse />
+    case 'diagnosis': return <DiagnosisFeed />
+    case 'fix':       return <FixGenerator />
+    case 'log':       return <ImprovementLog />
+  }
 }
 
 export default function CustomDashboard() {
   const { settings, saveSettings } = useApp()
-  const [layout, setLayout] = useState(settings.dashboardLayout || ['pulse', 'diagnosis', 'fix', 'log'])
-  const [activeLayout, setActiveLayout] = useState('2col')
-  const [isEditing, setIsEditing] = useState(false)
-  const [isLive, setIsLive] = useState(false)
-  const [savedMsg, setSavedMsg] = useState('')
+  const [layout, setLayout] = useState(settings.dashboardLayout || ['pulse','diagnosis','fix','log'])
+  const [cols, setCols] = useState(2)
+  const [editing, setEditing] = useState(false)
+  const [saved, setSaved] = useState(false)
 
-  function toggleWidget(id) {
-    if (layout.includes(id)) {
-      if (layout.length === 1) return
-      setLayout(layout.filter(w => w !== id))
-    } else {
-      setLayout([...layout, id])
-    }
+  function toggle(id) {
+    setLayout(prev => prev.includes(id) ? prev.length > 1 ? prev.filter(w => w !== id) : prev : [...prev, id])
   }
-
-  function moveUp(id) {
-    const idx = layout.indexOf(id)
-    if (idx <= 0) return
-    const next = [...layout]
-    ;[next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
-    setLayout(next)
+  function move(id, dir) {
+    const i = layout.indexOf(id); if (i < 0) return
+    const n = [...layout]
+    const j = dir === 'up' ? i - 1 : i + 1
+    if (j < 0 || j >= n.length) return
+    ;[n[i], n[j]] = [n[j], n[i]]
+    setLayout(n)
   }
-
-  function moveDown(id) {
-    const idx = layout.indexOf(id)
-    if (idx >= layout.length - 1) return
-    const next = [...layout]
-    ;[next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
-    setLayout(next)
-  }
-
-  function saveLayout() {
-    saveSettings({ dashboardLayout: layout })
-    setSavedMsg('✓ Layout saved!')
-    setTimeout(() => setSavedMsg(''), 2000)
-  }
-
-  const activeCols = LAYOUTS.find(l => l.id === activeLayout)?.cols || 2
-
-  function renderWidget(id) {
-    switch (id) {
-      case 'pulse':     return <CampaignPulse key={id} />
-      case 'diagnosis': return <DiagnosisFeed key={id} />
-      case 'fix':       return <FixGenerator key={id} />
-      case 'log':       return <ImprovementLog key={id} />
-      default: return null
-    }
-  }
+  function save() { saveSettings({ dashboardLayout: layout }); setSaved(true); setTimeout(() => setSaved(false), 2000) }
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <div>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Custom Dashboard</h2>
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '3px 0 0' }}>
-            Configure which widgets appear and how they're arranged.
-          </p>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--t1)', margin: 0 }}>Custom Dashboard</h2>
+          <p style={{ fontSize: 13, color: 'var(--t3)', marginTop: 4 }}>Configure which panels appear and how they're arranged.</p>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          {savedMsg && <span style={{ fontSize: 11, color: 'var(--green)' }}>{savedMsg}</span>}
-          <button className={`btn ${isEditing ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setIsEditing(!isEditing)} style={{ fontSize: 11 }}>
-            {isEditing ? '✓ Done' : '⚙ Configure'}
-          </button>
-          <button className="btn btn-primary" onClick={() => { saveLayout(); setIsLive(true) }} style={{ fontSize: 11 }}>
-            {isLive ? '✓ Applied' : 'Apply Layout'}
-          </button>
+          {saved && <span style={{ fontSize: 12, color: 'var(--green)' }}>✓ Saved</span>}
+          <button className={`btn btn-sm ${editing ? 'btn-blue' : 'btn-ghost'}`} onClick={() => setEditing(!editing)}>{editing ? '✓ Done' : '⚙ Configure'}</button>
+          <button className="btn btn-primary btn-sm" onClick={save}>Apply Layout</button>
         </div>
       </div>
 
-      {isEditing ? (
-        <div style={{ display: 'flex', gap: 12, flex: 1 }}>
+      {editing ? (
+        <div style={{ display: 'flex', gap: 12, flex: 1, overflow: 'hidden', minHeight: 0 }}>
           {/* Widget picker */}
-          <div className="panel" style={{ width: 220, flexShrink: 0 }}>
-            <div className="panel-header"><span className="panel-title">Widgets</span></div>
-            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {ALL_WIDGETS.map(w => {
-                const isActive = layout.includes(w.id)
+          <div className="card" style={{ width: 210, flexShrink: 0, overflow: 'auto' }}>
+            <div className="card-header"><span className="card-title">Widgets</span></div>
+            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {WIDGETS.map(w => {
+                const on = layout.includes(w.id)
                 return (
-                  <div key={w.id}
-                    onClick={() => toggleWidget(w.id)}
-                    style={{
-                      background: isActive ? 'var(--bg-elevated)' : 'transparent',
-                      border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
-                      borderRadius: 8, padding: '8px 10px', cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: isActive ? 'var(--text-primary)' : 'var(--text-muted)' }}>{w.label}</span>
-                      <span style={{ fontSize: 10, color: isActive ? 'var(--green)' : 'var(--text-muted)' }}>{isActive ? '✓' : '+'}</span>
+                  <div key={w.id} onClick={() => toggle(w.id)} style={{ padding: '9px 10px', borderRadius: 8, cursor: 'pointer', border: `1px solid ${on ? 'var(--blue-mid)' : 'var(--border)'}`, background: on ? 'var(--blue-light)' : 'var(--bg)', transition: 'all .15s' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: on ? 'var(--blue)' : 'var(--t2)' }}>{w.label}</span>
+                      <span style={{ fontSize: 12, color: on ? 'var(--green)' : 'var(--t4)' }}>{on ? '✓' : '+'}</span>
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{w.desc}</div>
+                    <div style={{ fontSize: 11, color: 'var(--t3)' }}>{w.desc}</div>
                   </div>
                 )
               })}
             </div>
           </div>
 
-          {/* Layout picker + order */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* Layout options */}
-            <div className="panel">
-              <div className="panel-header"><span className="panel-title">Layout</span></div>
-              <div className="panel-body" style={{ display: 'flex', gap: 8 }}>
+          {/* Layout + order */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden', minHeight: 0 }}>
+            {/* Column picker */}
+            <div className="card" style={{ flexShrink: 0 }}>
+              <div className="card-header"><span className="card-title">Layout</span></div>
+              <div className="card-body" style={{ display: 'flex', gap: 8 }}>
                 {LAYOUTS.map(l => (
-                  <div key={l.id} onClick={() => setActiveLayout(l.id)}
-                    style={{
-                      flex: 1, padding: '8px', borderRadius: 8, cursor: 'pointer', textAlign: 'center',
-                      border: `1px solid ${activeLayout === l.id ? 'var(--accent)' : 'var(--border)'}`,
-                      background: activeLayout === l.id ? 'var(--bg-elevated)' : 'transparent',
-                      fontSize: 11, color: activeLayout === l.id ? 'var(--text-primary)' : 'var(--text-muted)',
-                      transition: 'all 0.15s',
-                    }}>
+                  <div key={l.id} onClick={() => setCols(l.cols)} style={{ flex: 1, padding: 10, borderRadius: 8, cursor: 'pointer', textAlign: 'center', border: `1px solid ${cols === l.cols ? 'var(--blue)' : 'var(--border)'}`, background: cols === l.cols ? 'var(--blue-light)' : 'transparent', fontSize: 12, fontWeight: cols === l.cols ? 600 : 400, color: cols === l.cols ? 'var(--blue)' : 'var(--t2)', transition: 'all .15s' }}>
                     {l.label}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Widget order */}
-            <div className="panel" style={{ flex: 1 }}>
-              <div className="panel-header">
-                <span className="panel-title">Order & Position</span>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Use arrows to reorder</span>
-              </div>
-              <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {/* Order */}
+            <div className="card" style={{ flex: 1, overflow: 'auto' }}>
+              <div className="card-header"><span className="card-title">Order</span><span style={{ fontSize: 11, color: 'var(--t4)' }}>Use arrows to reorder</span></div>
+              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {layout.map((id, idx) => {
-                  const w = ALL_WIDGETS.find(x => x.id === id)
+                  const w = WIDGETS.find(x => x.id === id)
                   return (
-                    <div key={id} style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-                      borderRadius: 8, padding: '8px 10px',
-                    }}>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 20, textAlign: 'center' }}>{idx + 1}</span>
-                      <WidgetPreview id={id} label={w?.label || id} />
-                      <div style={{ flex: 1 }} />
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <button onClick={() => moveUp(id)}
-                          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 3, padding: '2px 5px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 10 }}>▲</button>
-                        <button onClick={() => moveDown(id)}
-                          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 3, padding: '2px 5px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 10 }}>▼</button>
+                    <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                      <span style={{ fontSize: 12, color: 'var(--t4)', width: 20, textAlign: 'center', fontWeight: 600 }}>{idx + 1}</span>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: w?.color, flexShrink: 0 }} />
+                      <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--t1)' }}>{w?.label}</span>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button onClick={() => move(id,'up')} style={{ padding: '2px 6px', borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg)', cursor: 'pointer', fontSize: 10, color: 'var(--t2)' }}>▲</button>
+                        <button onClick={() => move(id,'dn')} style={{ padding: '2px 6px', borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg)', cursor: 'pointer', fontSize: 10, color: 'var(--t2)' }}>▼</button>
                       </div>
                     </div>
                   )
@@ -190,17 +120,8 @@ export default function CustomDashboard() {
           </div>
         </div>
       ) : (
-        /* Live dashboard view */
-        <div style={{
-          flex: 1, display: 'grid',
-          gridTemplateColumns: `repeat(${activeCols}, 1fr)`,
-          gap: 10, overflow: 'auto',
-        }}>
-          {layout.map(id => (
-            <div key={id} style={{ minHeight: 300 }}>
-              {renderWidget(id)}
-            </div>
-          ))}
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 10, overflow: 'auto', alignContent: 'start' }}>
+          {layout.map(id => <div key={id} style={{ minHeight: 280 }}>{renderWidget(id)}</div>)}
         </div>
       )}
     </div>

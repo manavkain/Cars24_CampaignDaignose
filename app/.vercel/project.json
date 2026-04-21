@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_D1hCA4ViRUfNsAgiKI272ON8qJM9",
+  "orgId": "team_BGVYyDJAr8wmPBHAzLFHYu8X",
+  "projectName": "ai-growth-operator-app",
+  "settings": {
+    "createdAt": 1776691116737,
+    "framework": "nextjs",
+    "devCommand": null,
+    "installCommand": "npm install",
+    "buildCommand": "npm run build",
+    "outputDirectory": ".next",
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}

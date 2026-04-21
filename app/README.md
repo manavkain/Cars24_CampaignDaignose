@@ -1,65 +1,33 @@
-# AI Growth Operator
+# AI Growth Operator v2
 
-Post-launch campaign intelligence. Diagnose → Fix → Track.
+Post-launch campaign intelligence. SaaS UI. Cars24 brand.
 
-## Deploy in 5 minutes
-
-### Option A — Vercel (recommended)
-
-1. Push this folder to a GitHub repo
-2. Go to vercel.com → New Project → Import your repo
-3. Framework: Next.js (auto-detected)
-4. Deploy → get your live URL
-
-### Option B — Local dev
+## Deploy
 
 ```bash
-npm install
-npm run dev
-# Open http://localhost:3000
+# Push to GitHub, then:
+# vercel.com → New Project → Import → Deploy
+npm install && npm run dev   # local: localhost:3000
 ```
 
-## Setup after deploy
+## Setup
 
-1. Open the app → click **⚙ Settings**
-2. Add your Gemini API key (free at aistudio.google.com)
-3. Optionally add Make.com webhook URL for Airtable export
-4. Optionally paste a Google Sheets URL with campaign data
+1. Open app → **Settings** → add Gemini API key (free: aistudio.google.com)
+2. **Connectors** → connect Meta Ads or Google Ads, or paste Sheets URL
+3. Toggle **Live mode** in sidebar → auto-diagnoses on interval
 
-## Google Sheets format
+## Brand
+- 60% `#FFFFFF` neutral white
+- 30% `#0071BC` Blue Bliss
+- 10% `#F7931E` Overdrive Orange
 
-Make the sheet public (Share → Anyone with link → Viewer), then paste the URL in Settings.
-
-Row 1 headers (exact):
-```
-CTR,CPC,CPL,ROAS,Frequency,Spend,Conversions,Impressions,Clicks,Campaign,Platform,Objective,Audience,Placement,Format
-```
-
-Row 2 = your values:
-```
-1.8,42,380,2.4,4.7,45000,118,512000,9216,Cars24 Q2,Meta,Lead Generation,Auto-intenders 25-45,Feed + Stories,Single Image
-```
-
-## Pages
-
-| Page | What it does |
-|---|---|
-| Dashboard | 3-col live view: Pulse + Fix Generator + Diagnosis + Log |
-| Reports | Health score, issues summary, fix performance stats |
-| Logic Maker | IF/THEN rules that auto-trigger on metric thresholds |
-| Custom View | Configure which widgets appear and in what layout |
-| AI Tools | Chat with AI about your campaign + copy generator |
-| Settings | API keys, thresholds, intervals |
-
-## Stack
-
-- Next.js 14 (App Router)
-- Tailwind CSS
-- Gemini 2.0 Flash (free API)
-- Google Sheets (public CSV export — no API key needed)
-- localStorage for persistence
-- Make.com webhook → Airtable (optional)
-
-## Demo mode
-
-Works without any API keys — uses mock Cars24 campaign data so you can demo immediately.
+## What's fixed vs v1
+- CORS: Sheets + webhook moved to server-side API routes
+- `@keyframes spin` added
+- Continuous mode wired with real setInterval
+- Sidebar replaces top nav → SaaS layout
+- Pipeline strip in TopBar
+- Full AI chat with avatar + auto-resize + quick prompts
+- Connectors page: Meta Ads, Google Ads, Sheets
+- Realistic mock data (not 100% win rate)
+- Cars24 brand colors throughout

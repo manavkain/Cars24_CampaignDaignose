@@ -1,59 +1,49 @@
 'use client'
 import { useState } from 'react'
 import { AppProvider } from '../components/AppContext'
-import TopNav from '../components/TopNav'
+import Sidebar from '../components/Sidebar'
+import TopBar from '../components/TopBar'
 import MainDashboard from '../components/dashboard/MainDashboard'
+import AIChat from '../components/pages/AIChat'
 import Reports from '../components/pages/Reports'
+import Connectors from '../components/pages/Connectors'
 import CustomLogicMaker from '../components/pages/CustomLogicMaker'
 import CustomDashboard from '../components/pages/CustomDashboard'
-import AITools from '../components/pages/AITools'
 import Settings from '../components/pages/Settings'
+
+const PAGE_META = {
+  dashboard:        { title: 'Dashboard',        sub: 'Live campaign intelligence' },
+  'ai-chat':        { title: 'AI Assistant',     sub: 'Chat with your campaign data' },
+  reports:          { title: 'Reports',           sub: 'Health score & fix performance' },
+  connectors:       { title: 'Connectors',        sub: 'Ad platform integrations' },
+  'custom-logic':   { title: 'Logic Maker',       sub: 'IF/THEN automation rules' },
+  'custom-dashboard':{ title: 'Custom View',      sub: 'Configure your dashboard layout' },
+  settings:         { title: 'Settings',          sub: 'API keys, thresholds & config' },
+}
 
 function AppContent() {
   const [view, setView] = useState('dashboard')
+  const meta = PAGE_META[view] || { title: view, sub: '' }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      <TopNav currentView={view} setView={setView} />
-      <main style={{ flex: 1, overflow: 'auto', padding: 12 }}>
-        {view === 'dashboard'        && <MainDashboard />}
-        {view === 'reports'          && <Reports />}
-        {view === 'custom-logic'     && <CustomLogicMaker />}
-        {view === 'custom-dashboard' && <CustomDashboard />}
-        {view === 'ai-tools'         && <AITools />}
-        {view === 'admin'            && <AdminPlaceholder />}
-        {view === 'settings'         && <Settings />}
-      </main>
-    </div>
-  )
-}
-
-function AdminPlaceholder() {
-  return (
-    <div style={{ maxWidth: 600 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>Admin</h2>
-      <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>
-        Multi-campaign management, team access, and audit logs. Coming in v2.
-      </p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        {['Multi-campaign view', 'Team roles & access', 'Audit log', 'Export history', 'Webhook management', 'API usage stats'].map(item => (
-          <div key={item} style={{
-            background: 'var(--bg-card)', border: '1px solid var(--border)',
-            borderRadius: 8, padding: '12px 14px',
-            fontSize: 12, color: 'var(--text-secondary)',
-          }}>
-            <span style={{ marginRight: 6, opacity: 0.4 }}>○</span>{item}
-          </div>
-        ))}
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <Sidebar view={view} setView={setView} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+        <TopBar title={meta.title} subtitle={meta.sub} />
+        <main style={{ flex: 1, overflow: 'auto', padding: 14 }}>
+          {view === 'dashboard'         && <MainDashboard />}
+          {view === 'ai-chat'           && <AIChat />}
+          {view === 'reports'           && <Reports />}
+          {view === 'connectors'        && <Connectors />}
+          {view === 'custom-logic'      && <CustomLogicMaker />}
+          {view === 'custom-dashboard'  && <CustomDashboard />}
+          {view === 'settings'          && <Settings />}
+        </main>
       </div>
     </div>
   )
 }
 
 export default function Page() {
-  return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
-  )
+  return <AppProvider><AppContent /></AppProvider>
 }
