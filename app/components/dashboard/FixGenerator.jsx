@@ -58,43 +58,42 @@ export default function FixGenerator({ selectedId }) {
 
   return (
     <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div className="card-header">
+      <div className="card-header" style={{ padding: '10px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--primary)' }}>build_circle</span>
-          <span className="card-title">Fix Generator</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--primary)' }}>build_circle</span>
+          <span className="card-title" style={{ fontSize: 10 }}>Fix Generator</span>
         </div>
       </div>
       
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
-        {/* Issues Sidebar */}
+        {/* Issues Sidebar - Compact */}
         <div style={{ 
-          width: 140, 
+          width: 120, 
           background: 'var(--surface-low)', 
           borderRight: '1px solid rgba(192,199,211,0.1)', 
           display: 'flex', 
           flexDirection: 'column',
           flexShrink: 0
         }}>
-          <div style={{ padding: '12px 16px', fontSize: 10, fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Issues</div>
+          <div style={{ padding: '10px 14px', fontSize: 9, fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Anomalies</div>
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
             {issues.map(issue => (
               <button key={issue.id} 
                 onClick={() => setLocalSelected(issue.id)}
                 style={{
-                  padding: '12px 16px',
+                  padding: '10px 14px',
                   textAlign: 'left',
                   background: localSelected === issue.id ? 'var(--surface-white)' : 'transparent',
                   border: 'none',
-                  borderLeft: `5px solid ${localSelected === issue.id ? (issue.severity === 'high' ? 'var(--error)' : 'var(--orange)') : 'transparent'}`,
+                  borderLeft: `4px solid ${localSelected === issue.id ? (issue.severity === 'high' ? 'var(--error)' : 'var(--orange)') : 'transparent'}`,
                   cursor: 'pointer',
                   transition: 'all .2s',
-                  position: 'relative',
-                  zIndex: localSelected === issue.id ? 2 : 1
+                  position: 'relative'
                 }}>
-                <div style={{ fontSize: 13, fontWeight: localSelected === issue.id ? 700 : 500, color: localSelected === issue.id ? 'var(--on-surface)' : 'var(--on-surface-v)', lineHeight: 1.3 }}>
+                <div style={{ fontSize: 12, fontWeight: localSelected === issue.id ? 700 : 500, color: localSelected === issue.id ? 'var(--on-surface)' : 'var(--on-surface-v)', lineHeight: 1.2 }}>
                   {issue.type.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join(' ')}
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--outline)', marginTop: 4 }}>{issue.severity === 'high' ? 'Critical Impact' : 'Moderate Impact'}</div>
+                <div style={{ fontSize: 9, color: 'var(--outline)', marginTop: 2 }}>{issue.severity === 'high' ? 'Critical' : 'Moderate'}</div>
               </button>
             ))}
           </div>
@@ -102,23 +101,26 @@ export default function FixGenerator({ selectedId }) {
 
         {/* Content Area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: 'var(--surface-white)' }}>
-          {/* Tabs */}
-          <div style={{ display: 'flex', borderBottom: '1px solid rgba(192,199,211,0.1)', padding: '0 16px', flexShrink: 0 }}>
+          {/* Tabs - Compact & Fitted */}
+          <div style={{ display: 'flex', borderBottom: '1px solid rgba(192,199,211,0.1)', padding: '0 8px', flexShrink: 0 }}>
             {['Creative', 'Audience', 'Bidding'].map(tab => (
               <button key={tab} 
                 onClick={() => setActiveTab(tab)}
                 style={{
-                  padding: '14px 16px',
-                  fontSize: 13,
-                  fontWeight: activeTab === tab ? 700 : 500,
+                  padding: '12px 10px',
+                  fontSize: 11,
+                  fontWeight: activeTab === tab ? 700 : 600,
                   color: activeTab === tab ? 'var(--primary-c)' : 'var(--outline)',
                   border: 'none',
                   background: 'transparent',
                   borderBottom: `2px solid ${activeTab === tab ? 'var(--primary-c)' : 'transparent'}`,
                   cursor: 'pointer',
-                  transition: 'all .2s'
+                  transition: 'all .2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
                 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: 'middle', marginRight: 6 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                   {tab === 'Creative' ? 'edit' : tab === 'Audience' ? 'groups' : 'payments'}
                 </span>
                 {tab}
@@ -126,45 +128,44 @@ export default function FixGenerator({ selectedId }) {
             ))}
           </div>
 
-          {/* Variants Grid */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Variants Grid - Fixed Padding & Spacing */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
              {variants.map(v => (
                <div key={v.id} className="variant-card animate-fade-in" style={{ 
                  background: 'var(--surface-low)', 
-                 borderRadius: 16, 
-                 padding: 20, 
+                 borderRadius: 14, 
+                 padding: 16, 
                  border: '1px solid rgba(192,199,211,0.1)',
                  display: 'flex',
                  flexDirection: 'column',
-                 gap: 12,
+                 gap: 10,
                  position: 'relative'
                }}>
                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                     <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--primary-fixed)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: 'var(--primary)' }}>
-                       <div style={{ fontSize: 9 }}>{activeTab === 'Audience' ? 'SEGMENT' : activeTab === 'Bidding' ? 'POLICY' : 'VARIANT'}</div>
-                       <div style={{ fontSize: 14 }}>{v.id}</div>
+                     <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--primary-fixed)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: 'var(--primary)' }}>
+                       <div>{v.id}</div>
                      </div>
-                     <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
-                       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>verified</span> AI Recommended
+                     <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+                       <span className="material-symbols-outlined" style={{ fontSize: 12 }}>verified</span> Recommended
                      </span>
                    </div>
-                   <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--on-surface)', fontFamily: 'Manrope,sans-serif' }}>{v.confidence}%</div>
-                      <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Confidence</div>
+                   <div style={{ textAlign: 'right', background: 'var(--surface-white)', padding: '4px 10px', borderRadius: 99, border: '1px solid rgba(0,88,148,0.1)' }}>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: 'var(--primary)', fontFamily: 'Manrope,sans-serif', lineHeight: 1 }}>{v.confidence}%</div>
+                      <div style={{ fontSize: 8, fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', marginTop: 1 }}>Conf.</div>
                    </div>
                  </div>
                  
                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--on-surface)', marginBottom: 4 }}>{v.headline}</div>
-                    <div style={{ fontSize: 13, color: 'var(--on-surface-v)', lineHeight: 1.5 }}>{v.body}</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--on-surface)', marginBottom: 2 }}>{v.headline}</div>
+                    <div style={{ fontSize: 12, color: 'var(--on-surface-v)', lineHeight: 1.4, fontWeight: 500 }}>{v.body}</div>
                  </div>
                  
-                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                    <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => handleCopy(v)}>
-                      {copiedId === v.id ? '✓ Copied' : 'Copy Info'}
+                 <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+                    <button className="btn btn-ghost btn-xs" style={{ flex: 1, padding: '5px' }} onClick={() => handleCopy(v)}>
+                      {copiedId === v.id ? '✓ Copied' : 'Copy'}
                     </button>
-                    <button className="btn btn-primary btn-sm" style={{ flex: 1.5 }} onClick={() => deploy(v.title)}>Deploy {v.id}</button>
+                    <button className="btn btn-primary btn-xs" style={{ flex: 1.5, padding: '5px' }} onClick={() => deploy(v.title)}>Deploy</button>
                  </div>
                </div>
              ))}

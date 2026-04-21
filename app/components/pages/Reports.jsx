@@ -19,99 +19,145 @@ export default function Reports() {
   })()
 
   const scoreColor = score >= 70 ? '#16a34a' : score >= 40 ? 'var(--orange)' : 'var(--error)'
-  const scoreBg = score >= 70 ? '#d4edda' : score >= 40 ? '#ffeee2' : 'var(--error-c)'
   const scoreLabel = score >= 70 ? 'Healthy' : score >= 40 ? 'At Risk' : 'Critical'
 
   return (
     <div className="animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 16, overflow: 'hidden' }}>
-      <div style={{ flexShrink: 0 }}>
-        <h2 style={{ fontFamily: 'Manrope,sans-serif', fontSize: 28, fontWeight: 800, color: 'var(--on-surface)', margin: 0, letterSpacing: '-0.02em' }}>Performance Analytics</h2>
-        <p style={{ fontSize: 14, color: 'var(--on-surface-v)', marginTop: 4 }}>In-depth campaign health audit and optimization tracking.</p>
-      </div>
-
-      {/* Health score section - Compact Stitch Style */}
-      <div className="card" style={{ flexShrink: 0 }}>
-        <div className="card-header" style={{ padding: '10px 16px' }}>
-          <span className="card-title">Campaign Health Index</span>
-          <span style={{ fontSize: 10, color: 'var(--outline)', fontWeight: 600 }}>{metrics.campaign} • {metrics.platform}</span>
+      <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <h2 style={{ fontFamily: 'Manrope,sans-serif', fontSize: 24, fontWeight: 800, color: 'var(--on-surface)', margin: 0, letterSpacing: '-0.02em' }}>Performance Analytics</h2>
+          <p style={{ fontSize: 13, color: 'var(--on-surface-v)', marginTop: 2 }}>Surgical audit of campaign health and optimization impact.</p>
         </div>
-        <div className="card-body" style={{ padding: '16px' }}>
-          <div style={{ display: 'flex', gap: 24, alignItems: 'center', background: 'var(--surface-low)', padding: 16, borderRadius: 12 }}>
-            <div style={{ width: 80, height: 80, borderRadius: '50%', border: `5px solid ${scoreColor}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-white)', flexShrink: 0, boxShadow: `0 0 16px ${scoreColor}15` }}>
-              <span style={{ fontSize: 24, fontWeight: 900, color: scoreColor, lineHeight: 1, fontFamily: 'Manrope,sans-serif' }}>{score}</span>
-              <span style={{ fontSize: 9, color: 'var(--outline)', fontWeight: 700 }}>/ 100</span>
-            </div>
-            <div style={{flex: 1}}>
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom: 4 }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: scoreColor, fontFamily: 'Manrope,sans-serif' }}>{scoreLabel}</div>
-                <span className={`badge`} style={{background: scoreBg, color: scoreColor, fontSize: 10, padding: '2px 8px'}}>{score >= 70 ? 'Optimal' : 'Needs Work'}</span>
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--on-surface-v)', lineHeight: 1.5, fontWeight: 500 }}>
-                {diagnosis?.summary || 'No diagnostic data available. Run a diagnosis to generate a health score analysis.'}
-              </div>
-            </div>
-          </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-ghost btn-xs">Download PDF</button>
+          <button className="btn btn-primary btn-xs">Generate Insights</button>
         </div>
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16, flex: 1, minHeight: 0}}>
-        {/* Active issues */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div className="card-header" style={{ padding: '10px 16px' }}>
-            <span className="card-title">Critical Anomalies</span>
-            {issues.length > 0 && <span className="badge badge-red" style={{fontSize: 9, padding: '1px 6px'}}>{issues.length}</span>}
-          </div>
-          <div className="card-body" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, padding: 16 }}>
-            {issues.length === 0 ? (
-              <div style={{padding: '20px', textAlign: 'center', color: 'var(--outline)', fontSize: 13}}>No critical issues detected.</div>
-            ) : (
-              issues.map(issue => (
-                <div key={issue.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 12px', background: 'var(--surface-low)', borderRadius: 10, border: '1px solid rgba(192,199,211,0.1)' }}>
-                   <span className="material-symbols-outlined" style={{color: issue.severity === 'high' ? 'var(--error)' : 'var(--orange)', fontSize: 18}}>
-                    {issue.severity === 'high' ? 'warning' : 'info'}
-                  </span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--on-surface)', fontFamily: 'Manrope,sans-serif' }}>{issue.type.replace(/_/g,' ')}</div>
-                    <div style={{ fontSize: 11, color: 'var(--on-surface-v)', marginTop: 2, lineHeight: 1.4 }}>{issue.evidence}</div>
-                  </div>
-                  <span className="chip-ai" style={{fontSize: 9}}>{issue.confidence}%</span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16, flex: 1, minHeight: 0 }}>
+        {/* Main report area */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingRight: 4 }}>
+          {/* Health index card - integrated design */}
+          <div className="card" style={{ background: 'linear-gradient(135deg, #fff, #f8f9fa)', border: '1px solid rgba(0,88,148,0.1)' }}>
+            <div className="card-body" style={{ display: 'flex', gap: 24, alignItems: 'center', padding: 24 }}>
+              <div style={{ position: 'relative', width: 90, height: 90, flexShrink: 0 }}>
+                 <svg style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                   <circle cx="45" cy="45" r="40" fill="none" stroke="var(--surface-high)" strokeWidth="8" />
+                   <circle cx="45" cy="45" r="40" fill="none" stroke={scoreColor} strokeWidth="8" 
+                     strokeDasharray={`${2 * Math.PI * 40}`} 
+                     strokeDashoffset={`${2 * Math.PI * 40 * (1 - score/100)}`} 
+                     strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s ease-out' }} />
+                 </svg>
+                 <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                   <span style={{ fontSize: 22, fontWeight: 900, color: scoreColor, fontFamily: 'Manrope,sans-serif', lineHeight: 1 }}>{score}</span>
+                   <span style={{ fontSize: 9, color: 'var(--outline)', fontWeight: 700 }}>SCORE</span>
+                 </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--on-surface)', fontFamily: 'Manrope,sans-serif' }}>Campaign Integrity: {scoreLabel}</div>
+                  <span className={`badge ${score >= 70 ? 'badge-green' : 'badge-amber'}`} style={{ fontSize: 10 }}>{score >= 70 ? 'Optimal' : 'Needs Tuning'}</span>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Fix performance summary */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div className="card-header" style={{ padding: '10px 16px' }}>
-            <span className="card-title">Optimization Impact</span>
-          </div>
-          <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-              {[{ l:'Total Deployed', v:deployed }, { l:'Win Rate', v:`${winRate}%`, c:winRate>=60?'#16a34a':'var(--orange)' }].map(s => (
-                <div key={s.l} style={{ background:'var(--surface-low)', borderRadius:10, padding:12, textAlign:'center' }}>
-                  <div style={{ fontSize:20, fontWeight:800, color:s.c||'var(--on-surface)', fontFamily: 'Manrope,sans-serif' }}>{s.v}</div>
-                  <div style={{ fontSize:9, color:'var(--outline)', marginTop:2, fontWeight: 700, textTransform: 'uppercase' }}>{s.l}</div>
+                <div style={{ fontSize: 13, color: 'var(--on-surface-v)', lineHeight: 1.5, fontWeight: 500 }}>
+                  Current metrics show {score >= 70 ? 'strong' : 'marginal'} performance across critical KPIs. {score < 70 ? 'Immediate optimization recommended for CPC and Frequency.' : 'Maintaining steady-state with minimal drift.'}
                 </div>
-              ))}
+              </div>
             </div>
-            <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
-              {['Creative','Audience','Bidding','Budget'].map(type => {
-                const count = log.filter(l => l.fixType === type).length
-                const wins = log.filter(l => l.fixType === type && l.result === 'up').length
-                const pct = count > 0 ? Math.round(wins/count*100) : 0
-                return (
-                  <div key={type} style={{ display:'flex', alignItems:'center', gap:12 }}>
-                    <span style={{ width:60, fontSize:11, color:'var(--on-surface-v)', fontWeight:600 }}>{type}</span>
-                    <div style={{ flex:1 }}>
-                      <div className="progress-bar" style={{height: 3}}><div className="progress-fill" style={{ width:`${pct}%` }} /></div>
+          </div>
+
+          {/* Stats grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+             {[
+               { l: 'CTR Efficiency', v: `${metrics.ctr}%`, s: metrics.ctr >= 1.5 ? 'up' : 'down', d: '+0.2%' },
+               { l: 'ROAS Impact', v: `${metrics.roas}x`, s: metrics.roas >= 2.5 ? 'up' : 'down', d: '+12%' },
+               { l: 'Avg CPC', v: `₹${metrics.cpc}`, s: metrics.cpc <= 45 ? 'up' : 'down', d: '-₹4' },
+             ].map((s, i) => (
+               <div key={i} className="card" style={{ padding: 16 }}>
+                 <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', marginBottom: 8 }}>{s.l}</div>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--on-surface)', fontFamily: 'Manrope,sans-serif' }}>{s.v}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: s.s === 'up' ? '#16a34a' : 'var(--error)', display: 'flex', alignItems: 'center', gap: 2 }}>
+                       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{s.s === 'up' ? 'trending_up' : 'trending_down'}</span> {s.d}
                     </div>
-                    <span style={{ fontSize:10, color:'var(--outline)', width:70, textAlign:'right', fontWeight: 600 }}>{count>0?`${wins}/${count}`:'—'}</span>
+                 </div>
+               </div>
+             ))}
+          </div>
+
+          {/* Impact list */}
+          <div className="card" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <div className="card-header" style={{ padding: '10px 16px' }}>
+              <span className="card-title">Diagnostic Audit Stream</span>
+            </div>
+            <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {issues.length === 0 ? (
+                <div style={{ padding: 40, textAlign: 'center', color: 'var(--outline)' }}>No diagnostic issues detected in latest report.</div>
+              ) : (
+                issues.map(issue => (
+                  <div key={issue.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 16px', background: 'var(--surface-low)', borderRadius: 12, border: '1px solid rgba(192,199,211,0.1)' }}>
+                     <div style={{ width: 32, height: 32, borderRadius: 8, background: issue.severity === 'high' ? 'var(--error-c)' : '#ffeee2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span className="material-symbols-outlined" style={{ color: issue.severity === 'high' ? 'var(--error)' : 'var(--orange)', fontSize: 18 }}>{issue.severity === 'high' ? 'warning' : 'info'}</span>
+                     </div>
+                     <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--on-surface)', fontFamily: 'Manrope,sans-serif' }}>{issue.type.replace(/_/g,' ')}</div>
+                        <div style={{ fontSize: 11, color: 'var(--on-surface-v)', marginTop: 2, lineHeight: 1.4, fontWeight: 500 }}>{issue.evidence}</div>
+                     </div>
+                     <span className="chip-ai" style={{ fontSize: 9 }}>{issue.confidence}% conf.</span>
                   </div>
-                )
-              })}
+                ))
+              )}
             </div>
           </div>
+        </div>
+
+        {/* Sidebar report area */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+           <div className="card">
+             <div className="card-header"><span className="card-title">Optimization Log</span></div>
+             <div className="card-body" style={{ padding: 16 }}>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+                 <div style={{ background: 'var(--surface-low)', padding: 12, borderRadius: 10, textAlign: 'center' }}>
+                   <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--primary)', fontFamily: 'Manrope,sans-serif' }}>{deployed}</div>
+                   <div style={{ fontSize: 8, fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', marginTop: 2 }}>Deployed</div>
+                 </div>
+                 <div style={{ background: 'var(--surface-low)', padding: 12, borderRadius: 10, textAlign: 'center' }}>
+                   <div style={{ fontSize: 20, fontWeight: 900, color: '#16a34a', fontFamily: 'Manrope,sans-serif' }}>{winRate}%</div>
+                   <div style={{ fontSize: 8, fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', marginTop: 2 }}>Win Rate</div>
+                 </div>
+               </div>
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                 {['Creative', 'Audience', 'Bidding'].map(type => {
+                   const count = log.filter(l => l.fixType === type).length
+                   const wins = log.filter(l => l.fixType === type && l.result === 'up').length
+                   const pct = count > 0 ? Math.round(wins/count*100) : 0
+                   return (
+                     <div key={type} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontWeight: 700 }}>
+                          <span style={{ color: 'var(--on-surface-v)' }}>{type} Fixes</span>
+                          <span style={{ color: 'var(--outline)' }}>{wins}/{count} wins</span>
+                       </div>
+                       <div className="progress-bar" style={{ height: 3 }}><div className="progress-fill" style={{ width: `${pct}%` }} /></div>
+                     </div>
+                   )
+                 })}
+               </div>
+             </div>
+           </div>
+
+           <div className="card" style={{ flex: 1, minHeight: 0 }}>
+             <div className="card-header"><span className="card-title">Insight Feed</span></div>
+             <div className="card-body" style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {log.slice(0, 5).map((l, i) => (
+                  <div key={i} style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(192,199,211,0.1)', background: 'var(--surface-white)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>{l.platform}</span>
+                      <span style={{ fontSize: 9, color: 'var(--outline)' }}>{l.timestamp}</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--on-surface)', fontWeight: 600, lineHeight: 1.3 }}>{l.description}</div>
+                  </div>
+                ))}
+             </div>
+           </div>
         </div>
       </div>
     </div>

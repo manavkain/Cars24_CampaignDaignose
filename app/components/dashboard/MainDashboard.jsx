@@ -35,24 +35,24 @@ export default function MainDashboard({ activeTab = 'Overview' }){
       {layoutStyle === 'grid' ? (
         <div style={{
           display:'grid',
-          gridTemplateColumns:'minmax(300px, 1fr) minmax(360px, 1.2fr) minmax(300px, 1fr)',
+          gridTemplateColumns:'minmax(280px, 0.9fr) minmax(320px, 1.2fr) minmax(280px, 0.9fr)',
           gap:14,
           flex: 1,
           minHeight: 0
         }}>
           {/* Column 1: Pulse (Top) + Log (Bottom) */}
           <div style={{display:'flex', flexDirection:'column', gap:14, minHeight:0}}>
-            <div style={{flexShrink:0, height: 'auto'}}><CampaignPulse compact={true}/></div>
+            <div style={{flexShrink:0}}><CampaignPulse compact={true}/></div>
             <div style={{flex:1, minHeight:0}}><ImprovementLog/></div>
           </div>
 
           {/* Column 2: Fix Generator (Full Height) */}
           <div style={{minHeight:0}}><FixGenerator selectedId={selectedIssue}/></div>
 
-          {/* Column 3: Diagnostic Stream (Top) + Nodes (Bottom) - BALANCED WITH COL 1 */}
+          {/* Column 3: Diagnostic Stream (Top) + Nodes (Bottom) */}
           <div style={{display:'flex', flexDirection:'column', gap:14, minHeight:0}}>
             <div style={{flex:1, minHeight:0}}><DiagnosisFeed onViewFix={id=>setSelectedIssue(id)}/></div>
-            <div style={{flexShrink:0, height: 'auto'}}><NodesPanel/></div>
+            <div style={{flexShrink:0}}><NodesPanel/></div>
           </div>
         </div>
       ) : (
@@ -65,20 +65,20 @@ export default function MainDashboard({ activeTab = 'Overview' }){
           paddingBottom: 8,
           minHeight: 0
         }}>
-          <div style={{minWidth: 320, flex: 1, display:'flex', flexDirection:'column', gap:12}}>
+          <div style={{minWidth: 300, flex: 1, display:'flex', flexDirection:'column', gap:12}}>
             <div style={{fontSize:10, fontWeight:800, color:'var(--outline)', textTransform:'uppercase', padding:'0 4px'}}>Pulse & Telemetry</div>
             <CampaignPulse compact={true}/>
             <div style={{flex:1, minHeight:0}}><ImprovementLog/></div>
           </div>
-          <div style={{minWidth: 360, flex: 1.2, display:'flex', flexDirection:'column', gap:12}}>
+          <div style={{minWidth: 340, flex: 1.2, display:'flex', flexDirection:'column', gap:12}}>
             <div style={{fontSize:10, fontWeight:800, color:'var(--outline)', textTransform:'uppercase', padding:'0 4px'}}>Diagnostic Stream</div>
             <div style={{flex:1, minHeight:0}}><DiagnosisFeed onViewFix={id=>setSelectedIssue(id)}/></div>
           </div>
-          <div style={{minWidth: 380, flex: 1.3, display:'flex', flexDirection:'column', gap:12}}>
+          <div style={{minWidth: 360, flex: 1.3, display:'flex', flexDirection:'column', gap:12}}>
             <div style={{fontSize:10, fontWeight:800, color:'var(--outline)', textTransform:'uppercase', padding:'0 4px'}}>Architecture Fixes</div>
             <div style={{flex:1, minHeight:0}}><FixGenerator selectedId={selectedIssue}/></div>
           </div>
-          <div style={{minWidth: 300, flex: 0.9, display:'flex', flexDirection:'column', gap:12}}>
+          <div style={{minWidth: 280, flex: 0.9, display:'flex', flexDirection:'column', gap:12}}>
             <div style={{fontSize:10, fontWeight:800, color:'var(--outline)', textTransform:'uppercase', padding:'0 4px'}}>Network Nodes</div>
             <NodesPanel/>
           </div>
@@ -101,7 +101,7 @@ function MetricsView() {
 
   return (
     <div className="animate-fade-in" style={{display:'flex', flexDirection:'column', gap:16, height:'100%', overflow:'hidden'}}>
-       <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:12, flexShrink:0}}>
+       <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(240px, 1fr))', gap:12, flexShrink:0}}>
           {items.map(m => {
             const h = getHealth(m.k, metrics[m.k])
             return (
@@ -138,7 +138,7 @@ function MetricsView() {
 function InsightsView() {
   const { diagnosis, metrics } = useApp()
   return (
-    <div className="animate-fade-in" style={{display:'grid', gridTemplateColumns:'1fr 320px', gap:16, height:'100%', overflow:'hidden'}}>
+    <div className="animate-fade-in" style={{display:'grid', gridTemplateColumns:'1fr 300px', gap:16, height:'100%', overflow:'hidden'}}>
       <div style={{display:'flex', flexDirection:'column', gap:16, minHeight:0}}>
         <div className="card" style={{background:'var(--primary-fixed)', border:'1px solid rgba(0,88,148,0.1)', flexShrink:0}}>
           <div className="card-body" style={{display:'flex', gap:20, alignItems:'center', padding:24}}>
@@ -235,15 +235,16 @@ function NodesPanel(){
         </div>
         <span style={{fontSize:10,color:'var(--outline)',fontWeight:600}}>{nodes.filter(n=>n.connected).length}/{nodes.length}</span>
       </div>
-      <div className="card-body" style={{display:'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap:6, padding: '12px 16px'}}>
+      <div className="card-body" style={{display:'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap:8, padding: '12px 16px'}}>
         {nodes.map(n=>(
-          <div key={n.id} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 10px',borderRadius:8,background:'var(--surface-low)',transition:'background .2s'}}
+          <div key={n.id} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'8px 6px',borderRadius:8,background:'var(--surface-low)',transition:'background .2s', textAlign: 'center'}}
             onMouseOver={e=>e.currentTarget.style.background='var(--surface-cont)'}
             onMouseOut={e=>e.currentTarget.style.background='var(--surface-low)'}>
-            <div style={{width:24,height:24,borderRadius:6,background:n.connected?`${tc[n.type]}15`:'var(--surface-high)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-              <span className="material-symbols-outlined" style={{fontSize:13,color:n.connected?tc[n.type]:'var(--outline)',fontVariationSettings:"'FILL' 1"}}>{icon[n.type]}</span>
+            <div style={{width:28,height:28,borderRadius:8,background:n.connected?`${tc[n.type]}15`:'var(--surface-high)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0, marginBottom: 2}}>
+              <span className="material-symbols-outlined" style={{fontSize:14,color:n.connected?tc[n.type]:'var(--outline)',fontVariationSettings:"'FILL' 1"}}>{icon[n.type]}</span>
             </div>
-            <span style={{flex:1,fontSize:10,color:n.connected?'var(--on-surface)':'var(--outline)',fontWeight:n.connected?700:500, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{n.name}</span>
+            <span style={{fontSize:9,color:n.connected?'var(--on-surface)':'var(--outline)',fontWeight:n.connected?700:500, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', width: '100%'}}>{n.name}</span>
+            <div className="dot" style={{background:n.connected?tc[n.type]:'var(--outline-v)', width: 4, height: 4}}/>
           </div>
         ))}
       </div>
