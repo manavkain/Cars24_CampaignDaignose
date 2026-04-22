@@ -34,7 +34,10 @@ export default function FixGenerator({ selectedId }) {
 
   const currentIssue = issues.find(i => i.id === localSelected) || issues[0]
 
+  const [deployedIds, setDeployedIds] = useState([])
+
   async function approve(v) {
+    if (deployedIds.includes(v.id)) return
     setApprovingId(v.id)
     try {
       const entry = {
@@ -49,10 +52,11 @@ export default function FixGenerator({ selectedId }) {
         before: '—',
         after: '',
         result: 'deployed',
-        notes: 'Auto-deployed via Approval'
+        notes: 'Auto-deployed via Approval Flow'
       }
       
-      await addLogEntry(entry)
+      await addLogEntry(entry, { triggerAlert: true })
+      setDeployedIds(prev => [...prev, v.id])
     } catch (e) {
       alert(`Approval failed: ${e.message}`)
     } finally {
@@ -179,8 +183,27 @@ export default function FixGenerator({ selectedId }) {
                     <button className="btn btn-ghost btn-xs" style={{ flex: 1, padding: '5px' }} onClick={() => handleCopy(v)}>
                       {copiedId === v.id ? '✓ Copied' : 'Copy'}
                     </button>
-                    <button className="btn btn-primary btn-xs" style={{ flex: 1.5, padding: '5px' }} onClick={() => approve(v)} disabled={approvingId === v.id}>
-                      {approvingId === v.id ? 'Approving...' : 'Approve'}
+                    <button 
+                      className={`btn ${deployedIds.includes(v.id) ? 'btn-ghost' : 'btn-primary'} btn-xs`} 
+                      style={{ 
+                        flex: 1.5, 
+                        padding: '5px',
+                        background: deployedIds.includes(v.id) ? 'rgba(22,163,74,0.1)' : undefined,
+                        color: deployedIds.includes(v.id) ? '#16a34a' : undefined,
+                        borderColor: deployedIds.includes(v.id) ? 'rgba(22,163,74,0.2)' : undefined,
+                      }} 
+                      onClick={() => approve(v)} 
+                      disabled={approvingId === v.id || deployedIds.includes(v.id)}
+                    >
+                      {approvingId === v.id ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span className="animate-spin" style={{ fontSize: 12 }}>◌</span> Firing Webhook...
+                        </span>
+                      ) : deployedIds.includes(v.id) ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check_circle</span> Deployed
+                        </span>
+                      ) : 'Approve & Deploy'}
                     </button>
                  </div>
                </div>

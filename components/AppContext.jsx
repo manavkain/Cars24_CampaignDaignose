@@ -123,7 +123,7 @@ export function AppProvider({ children }) {
     localStorage.setItem('ago_settings', JSON.stringify(n))
   }
 
-  async function addLogEntry(e) {
+  async function addLogEntry(e, options = {}) {
     const n = [e, ...log]
     setLog(n)
     localStorage.setItem('ago_log', JSON.stringify(n))
@@ -132,10 +132,18 @@ export function AppProvider({ children }) {
     // Automatically fire webhook on approve/add if URL is present
     if (settings.webhookUrl) {
       try {
-        await exportToAirtable(n)
+        await exportToAirtable(n, e)
       } catch (err) {
         console.error('Webhook failed:', err)
       }
+    }
+
+    if (options.triggerAlert && settings.alertWebhookUrl) {
+      triggerNotification('alert', {
+        event: 'DEPLOYMENT_APPROVED',
+        message: `New optimization deployed: ${e.fixSummary}`,
+        details: e
+      })
     }
   }
 
@@ -150,13 +158,21 @@ export function AppProvider({ children }) {
     localStorage.setItem('ago_rules', JSON.stringify(r))
   }
 
-  async function exportToAirtable(customLog) {
+  async function exportToAirtable(customLog, singleEntry = null) {
     const logToExport = customLog || log
     if (!settings.webhookUrl) throw new Error('Add Make.com webhook URL in Settings.')
     const res = await fetch('/api/webhook', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ webhookUrl: settings.webhookUrl, payload: { log: logToExport } }),
+      body: JSON.stringify({ 
+        webhookUrl: settings.webhookUrl, 
+        payload: { 
+          log: logToExport,
+          lastAction: singleEntry,
+          timestamp: new Date().toISOString(),
+          source: 'AI Growth Operator Approval Flow'
+        } 
+      }),
     })
     const d = await res.json()
     if (!d.ok) throw new Error('Export failed')

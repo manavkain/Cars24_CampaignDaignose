@@ -54,31 +54,25 @@ export default function Intel() {
   }
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20, height: '100%', overflow: 'hidden' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20, height: '100%', overflow: 'hidden', maxWidth: 1440, margin: '0 auto', width: '100%' }}>
       {/* Search Header */}
-      <div className="card" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ position: 'relative' }}>
-            <span className="material-symbols-outlined" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: 18 }}>search</span>
-            <input 
-              type="text" 
-              value={competitor} 
-              onChange={(e) => setCompetitor(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && fetchAds(competitor)}
-              placeholder="Search competitor..."
-              style={{ padding: '10px 16px 10px 40px', borderRadius: 99, border: '1px solid rgba(192,199,211,0.2)', width: 240, fontSize: 13 }}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {competitors.slice(0, 3).map(c => (
-              <button key={c} onClick={() => { setCompetitor(c); fetchAds(c); }} className={`btn btn-xs ${competitor === c ? 'btn-primary' : 'btn-ghost'}`}>{c}</button>
-            ))}
-          </div>
+      <div className="card" style={{ padding: '16px 24px', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <span className="material-symbols-outlined" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: 18 }}>search</span>
+          <input 
+            type="text" 
+            value={competitor} 
+            onChange={(e) => setCompetitor(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchAds(competitor)}
+            placeholder="Search competitor..."
+            style={{ padding: '10px 16px 10px 40px', borderRadius: 99, border: '1px solid rgba(192,199,211,0.2)', width: 240, maxWidth: '100%', fontSize: 13 }}
+          />
         </div>
-        <button className="btn btn-primary" onClick={analyzeStrategy} disabled={analyzing || loading}>
-          {analyzing ? <span className="animate-spin" style={{ marginRight: 8 }}>◌</span> : <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 8 }}>psychology</span>}
-          Analyze Strategy
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {competitors.slice(0, 3).map(c => (
+            <button key={c} onClick={() => { setCompetitor(c); fetchAds(c); }} className={`btn btn-xs ${competitor === c ? 'btn-primary' : 'btn-ghost'}`}>{c}</button>
+          ))}
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, flex: 1, minHeight: 0 }}>
@@ -114,9 +108,15 @@ export default function Intel() {
         {/* Intelligence Sidebar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface-low)' }}>
-            <div className="card-header">
-              <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--primary)', marginRight: 8 }}>insights</span>
-              <span className="card-title">Strategic Intel</span>
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--primary)', marginRight: 8, verticalAlign: 'middle' }}>insights</span>
+                <span className="card-title" style={{ verticalAlign: 'middle' }}>Strategic Intel</span>
+              </div>
+              <button className="btn btn-primary btn-xs" onClick={analyzeStrategy} disabled={analyzing || loading}>
+                {analyzing ? <span className="animate-spin" style={{ marginRight: 4 }}>◌</span> : <span className="material-symbols-outlined" style={{ fontSize: 14, marginRight: 4 }}>psychology</span>}
+                Analyze Strategy
+              </button>
             </div>
             <div className="card-body" style={{ flex: 1, overflow: 'auto' }}>
               {analysis ? (
