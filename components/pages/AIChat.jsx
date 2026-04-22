@@ -36,7 +36,7 @@ export default function AIChat(){
     const nm=[...msgs,{role:'user',content:msg}];setMsgs(nm);setLoading(true)
     try{
       let r
-      if(settings.geminiKey){r=await chatWithAI(nm,{metrics,summary:diagnosis?.summary},settings.geminiKey)}
+      if(settings.apiKey){r=await chatWithAI(nm,{metrics,summary:diagnosis?.summary},settings)}
       else{await new Promise(x=>setTimeout(x,700+Math.random()*400));r=DemoReply(msg,metrics)}
       setMsgs(p=>[...p,{role:'ai',content:r}])
     }catch(e){setMsgs(p=>[...p,{role:'ai',content:`Error: ${e.message}`}])}
@@ -47,7 +47,7 @@ export default function AIChat(){
     if(!copyBrief.trim())return;setCopyLoading(true)
     try{
       let r
-      if(settings.geminiKey){r=await generateCopy(copyBrief,settings.geminiKey)}
+      if(settings.apiKey){r=await generateCopy(copyBrief,settings)}
       else{
         await new Promise(x=>setTimeout(x,900))
         r={variants:[
@@ -78,9 +78,9 @@ export default function AIChat(){
           </button>
         ))}
         <div style={{flex:1}}/>
-        <span className={`badge ${settings.geminiKey?'badge-green':'badge-amber'}`} style={{padding:'6px 14px'}}>
-          <span className="dot" style={{background:settings.geminiKey?'#16a34a':'var(--orange)', animation:settings.geminiKey?'pulsedot 2s infinite':'none'}}/>
-          {settings.geminiKey?'Gemini Live':'Demo Mode'}
+        <span className={`badge ${settings.apiKey?'badge-green':'badge-amber'}`} style={{padding:'6px 14px'}}>
+          <span className="dot" style={{background:settings.apiKey?'#16a34a':'var(--orange)', animation:settings.apiKey?'pulsedot 2s infinite':'none'}}/>
+          {settings.apiKey?`${settings.aiProvider.charAt(0).toUpperCase() + settings.aiProvider.slice(1)} Live`:'Demo Mode'}
         </span>
       </div>
 

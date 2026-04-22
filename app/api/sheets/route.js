@@ -7,28 +7,53 @@ export async function GET(req) {
     const res = await fetch(url)
     if (!res.ok) throw new Error('Sheet fetch failed. Make sure sheet is public.')
     const csv = await res.text()
-    const lines = csv.trim().split('\n').map(l => l.split(',').map(v => v.trim().replace(/"/g, '')))
+    const lines = csv.trim().split('\n').map(line => {
+      const result = []
+      let current = ''
+      let inQuotes = false
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i]
+        if (char === '"') inQuotes = !inQuotes
+        else if (char === ',' && !inQuotes) {
+          result.push(current.trim())
+          current = ''
+        } else {
+          current += char
+        }
+      }
+      result.push(current.trim())
+      return result.map(v => v.replace(/^"|"$/g, ''))
+    })
+
     if (lines.length < 2) throw new Error('Sheet needs header row + data rows')
     const headers = lines[0].map(h => h.toLowerCase().replace(/\s+/g, '_'))
 
     const campaigns = lines.slice(1).filter(l => l.some(v => v)).map(values => {
       const row = {}
       headers.forEach((h, i) => { row[h] = values[i] || '' })
+      
+      const cleanNum = (v) => {
+        if (!v) return 0
+        const n = parseFloat(v.toString().replace(/[₹,%\s]/g, ''))
+        return isNaN(n) ? 0 : n
+      }
+
       return {
         campaign: row.name || row.campaign || 'Unnamed',
         platform: row.platform || 'Meta',
         audience: row.audience || '',
         creative: row.creative || '',
         status: row.status || 'unknown',
-        ctr: parseFloat(row.ctr) || 0,
-        cpc: parseFloat(row.cpc?.replace('₹', '')) || 0,
-        spend: parseFloat(row.spend?.replace('₹', '').replace(/,/g, '')) || 0,
-        impressions: parseInt(row.impressions?.replace(/,/g, '')) || 0,
-        cpl: parseFloat(row.cpl?.replace('₹', '')) || 0,
-        roas: parseFloat(row.roas) || 0,
-        frequency: parseFloat(row.frequency) || 0,
-        conversions: parseInt(row.conversions) || 0,
-        clicks: parseInt(row.clicks) || 0,
+        objective: row.objective || '',
+        ctr: cleanNum(row.ctr),
+        cpc: cleanNum(row.cpc),
+        spend: cleanNum(row.spend),
+        impressions: cleanNum(row.impressions),
+        cpl: cleanNum(row.cpl),
+        roas: cleanNum(row.roas),
+        frequency: cleanNum(row.frequency),
+        conversions: cleanNum(row.conversions),
+        clicks: cleanNum(row.clicks),
       }
     })
 

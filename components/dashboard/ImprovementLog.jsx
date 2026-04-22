@@ -1,29 +1,59 @@
 'use client'
 import { useState } from 'react'
 import { useApp } from '../AppContext'
+import { generateWeeklyReport } from '../../lib/gemini'
 
 const RS={
   up:    {l:'↑ Up',    icon:'trending_up',   c:'#155724', bg:'#d4edda'},
   down:  {l:'↓ Down',  icon:'trending_down',  c:'var(--on-error-c)', bg:'var(--error-c)'},
   flat:  {l:'→ Flat',  icon:'trending_flat',  c:'var(--outline)', bg:'var(--surface-high)'},
   pending:{l:'Pending', icon:'schedule',      c:'var(--orange-dark)', bg:'#ffeee2'},
+  deployed:{l:'Deployed',icon:'verified',      c:'var(--primary)',     bg:'var(--primary-fixed)'},
 }
 
 export default function ImprovementLog(){
-  const {log,updateLogEntry,exportToAirtable}=useApp()
-  const [editId,setEditId]=useState(null)
-  const [editForm,setEditForm]=useState({})
-  const [exporting,setExporting]=useState(false)
+  const {log, updateLogEntry, exportToAirtable, settings} = useApp()
+  const [editId, setEditId] = useState(null)
+  const [editForm, setEditForm] = useState({})
+  const [exporting, setExporting] = useState(false)
+  const [reporting, setReporting] = useState(false)
+  const [reportText, setReportText] = useState(null)
 
-  const deployed=log.length
-  const positive=log.filter(l=>l.result==='up').length
-  const winRate=deployed>0?Math.round(positive/deployed*100):0
+  const deployed = log.length
+  const positive = log.filter(l => l.result === 'up').length
+  const winRate = deployed > 0 ? Math.round(positive / deployed * 100) : 0
 
   async function doExport(){
     setExporting(true)
-    try{await exportToAirtable();alert('Exported to Airtable!')}
-    catch(e){alert(e.message)}
-    finally{setExporting(false)}
+    try { await exportToAirtable(); alert('Exported!') }
+    catch(e) { alert(e.message) }
+    finally { setExporting(false) }
+  }
+
+  async function doWeeklyReport(){
+    if (!settings.geminiKey) { alert('Add Gemini API key in Settings first.'); return }
+    setReporting(true)
+    setReportText(null)
+    try {
+      const narrative = await generateWeeklyReport(log, settings.geminiKey)
+      setReportText(narrative)
+      if (settings.webhookUrl) {
+        await fetch('/api/webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            webhookUrl: settings.webhookUrl,
+            payload: {
+              type: 'weekly_report',
+              report: narrative,
+              generatedAt: new Date().toISOString(),
+              stats: { deployed, positive, winRate }
+            }
+          })
+        })
+      }
+    } catch(e) { alert(e.message) }
+    finally { setReporting(false) }
   }
 
   return (
@@ -34,20 +64,26 @@ export default function ImprovementLog(){
           <span className="card-title">Improvement Log</span>
         </div>
         <div style={{display:'flex',gap:6}}>
+          <button className="btn btn-ghost btn-xs" onClick={doWeeklyReport} disabled={reporting}>
+            {reporting
+              ? <span className="animate-spin">◌</span>
+              : <span className="material-symbols-outlined" style={{fontSize:14}}>summarize</span>}
+            Weekly Report
+          </button>
           <button className="btn btn-ghost btn-xs" onClick={doExport} disabled={exporting}>
-            {exporting?<span className="animate-spin">◌</span>:<span className="material-symbols-outlined" style={{fontSize:14}}>upload</span>}
+            {exporting ? <span className="animate-spin">◌</span> : <span className="material-symbols-outlined" style={{fontSize:14}}>upload</span>}
             Export
           </button>
         </div>
       </div>
 
-      {/* Stats strip — Stitch: tonal background */}
+      {/* Stats strip */}
       <div style={{display:'flex',gap:0,borderBottom:'1px solid rgba(192,199,211,0.1)',background:'var(--surface-low)'}}>
         {[
-          {l:'Deployed',v:deployed},
-          {l:'Positive',v:positive,c:'#155724'},
-          {l:'Win Rate',v:`${winRate}%`,c:winRate>=60?'#155724':'var(--orange-dark)'},
-          {l:'Pending',v:log.filter(l=>l.result==='pending').length,c:'var(--orange-dark)'},
+          {l:'Deployed', v:deployed},
+          {l:'Positive',  v:positive, c:'#155724'},
+          {l:'Win Rate',  v:`${winRate}%`, c:winRate>=60?'#155724':'var(--orange-dark)'},
+          {l:'Pending',   v:log.filter(l=>l.result==='pending').length, c:'var(--orange-dark)'},
         ].map((s,i)=>(
           <div key={s.l} style={{flex:1,padding:'12px 14px',textAlign:'center',borderRight:i<3?'1px solid rgba(192,199,211,0.1)':'none'}}>
             <div style={{fontFamily:'Manrope,sans-serif',fontSize:20,fontWeight:800,color:s.c||'var(--on-surface)',letterSpacing:'-0.02em'}}>{s.v}</div>
@@ -55,6 +91,32 @@ export default function ImprovementLog(){
           </div>
         ))}
       </div>
+
+      {/* Weekly Report Output */}
+      {reportText && (
+        <div style={{
+          margin:'12px 16px 0',
+          padding:'14px 16px',
+          background:'var(--surface-low)',
+          borderRadius:10,
+          border:'1px solid rgba(192,199,211,0.15)',
+          fontSize:13,
+          lineHeight:1.7,
+          color:'var(--on-surface)',
+          whiteSpace:'pre-wrap'
+        }}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+            <span style={{fontSize:11,fontWeight:700,color:'var(--secondary)',textTransform:'uppercase',letterSpacing:'.08em'}}>
+              Weekly AI Summary — {new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
+            </span>
+            <button className="btn btn-ghost btn-xs" onClick={()=>setReportText(null)}>✕</button>
+          </div>
+          {reportText}
+          {settings.webhookUrl && (
+            <div style={{marginTop:10,fontSize:11,color:'var(--outline)'}}>✅ Sent to webhook</div>
+          )}
+        </div>
+      )}
 
       <div style={{flex:1,overflow:'auto'}}>
         {log.length===0?(
@@ -74,8 +136,8 @@ export default function ImprovementLog(){
             </thead>
             <tbody>
               {log.map(entry=>{
-                const rs=RS[entry.result]||RS.pending
-                const isEd=editId===entry.id
+                const rs = RS[entry.result] || RS.pending
+                const isEd = editId === entry.id
                 return (
                   <tr key={entry.id}>
                     <td style={{color:'var(--outline)',whiteSpace:'nowrap',fontSize:12,fontWeight:500}}>{entry.date}</td>

@@ -3,14 +3,28 @@ import { useState, useEffect } from 'react'
 import { useApp } from '../AppContext'
 
 export default function Settings() {
-  const { settings, saveSettings, setLog, setLogicRules, setMetrics } = useApp()
+  const { settings, saveSettings, setLog, setLogicRules, setMetrics, testAPIConnection } = useApp()
   const [form, setForm] = useState(settings)
   const [showKey, setShowKey] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [testing, setTesting] = useState(false)
+  const [testStatus, setTestStatus] = useState(null) // { ok, provider, error }
 
   useEffect(() => {
     setForm(settings)
   }, [settings])
+
+  async function handleTest() {
+    if (!form.apiKey) return
+    setTesting(true)
+    setTestStatus(null)
+    const res = await testAPIConnection(form.apiKey)
+    setTesting(false)
+    setTestStatus(res)
+    if (res.ok) {
+      setForm(prev => ({ ...prev, aiProvider: res.provider }))
+    }
+  }
 
   function save() {
     saveSettings(form)
@@ -41,21 +55,77 @@ export default function Settings() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* API Keys */}
           <div className="card">
-            <div className="card-header"><span className="card-title">API Configuration</span></div>
+            <div className="card-header"><span className="card-title">Universal API Intelligence</span></div>
             <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <label>Gemini API Key</label>
+                <label>API Key (Gemini, OpenAI, Claude)</label>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <input type={showKey ? 'text' : 'password'} value={form.geminiKey} onChange={e => setForm({ ...form, geminiKey: e.target.value })} placeholder="Enter Gemini key..." style={{ flex: 1 }} />
-                  <button className="btn btn-ghost" onClick={() => setShowKey(!showKey)} style={{ width: 60, padding: 0, justifyContent: 'center' }}>{showKey ? 'Hide' : 'Show'}</button>
+                  <input type={showKey ? 'text' : 'password'} value={form.apiKey || ''} onChange={e => setForm({ ...form, apiKey: e.target.value })} placeholder="Enter API key..." style={{ flex: 1 }} />
+                  <button className="btn btn-ghost" onClick={handleTest} disabled={testing || !form.apiKey} style={{ width: 'fit-content', padding: '0 16px' }}>
+                    {testing ? 'Detecting...' : 'Test & Identify'}
+                  </button>
                 </div>
-                <p style={{ fontSize: 11, color: 'var(--outline)', marginTop: 6 }}>Free key at <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>aistudio.google.com</a> • Stored locally only.</p>
+                {testStatus && (
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: testStatus.ok ? 'rgba(22,163,74,0.1)' : 'rgba(186,26,26,0.1)', color: testStatus.ok ? '#16a34a' : 'var(--error)' }}>
+                      {testStatus.ok ? `VALID: ${testStatus.provider.toUpperCase()}` : `ERROR: ${testStatus.error}`}
+                    </div>
+                  </div>
+                )}
+                <div style={{ marginTop: 12 }}>
+                   <label>Manual Provider Override</label>
+                   <select value={form.aiProvider || 'gemini'} onChange={e => setForm({ ...form, aiProvider: e.target.value })} style={{ width: '100%' }}>
+                     <option value="gemini">Google Gemini (2.0 Flash)</option>
+                     <option value="openai">OpenAI (GPT-4o)</option>
+                     <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
+                   </select>
+                </div>
+                <p style={{ fontSize: 11, color: 'var(--outline)', marginTop: 8 }}>Keys are stored locally only. System auto-detects provider based on key prefix.</p>
               </div>
               <div>
-                <label>Make.com Webhook URL</label>
+                <label>Default Webhook (Airtable)</label>
                 <input value={form.webhookUrl} onChange={e => setForm({ ...form, webhookUrl: e.target.value })} placeholder="https://hook.make.com/..." />
-                <p style={{ fontSize: 11, color: 'var(--outline)', marginTop: 6 }}>Used to export Improvement Log → Airtable.</p>
+                <p style={{ fontSize: 11, color: 'var(--outline)', marginTop: 6 }}>Main export for improvement logs.</p>
               </div>
+            </div>
+          </div>
+
+          {/* Notification Automations */}
+          <div className="card">
+            <div className="card-header"><span className="card-title">Notification Automations</span></div>
+            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
+                <div>
+                  <label>Diagnosis Alert Webhook</label>
+                  <input value={form.alertWebhookUrl || ''} onChange={e => setForm({ ...form, alertWebhookUrl: e.target.value })} placeholder="Alert webhook URL..." />
+                </div>
+                <div>
+                  <label>Frequency</label>
+                  <select value={form.alertFrequency || 'off'} onChange={e => setForm({ ...form, alertFrequency: e.target.value })} style={{ width: '100%' }}>
+                    <option value="off">Off</option>
+                    <option value="instantly">Instantly</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
+                <div>
+                  <label>Weekly Report Webhook</label>
+                  <input value={form.reportWebhookUrl || ''} onChange={e => setForm({ ...form, reportWebhookUrl: e.target.value })} placeholder="Report webhook URL..." />
+                </div>
+                <div>
+                  <label>Schedule</label>
+                  <select value={form.reportFrequency || 'off'} onChange={e => setForm({ ...form, reportFrequency: e.target.value })} style={{ width: '100%' }}>
+                    <option value="off">Off</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+              </div>
+              <p style={{ fontSize: 11, color: 'var(--outline)' }}>Trigger automated emails via Make/Zapier for critical alerts and analytics summaries.</p>
             </div>
           </div>
 

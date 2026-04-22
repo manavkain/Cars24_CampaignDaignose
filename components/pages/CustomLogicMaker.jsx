@@ -24,6 +24,20 @@ function RuleRow({ rule, onChange, onDelete, onToggle }) {
       <select value={rule.action} onChange={e => onChange(rule.id,'action',e.target.value)} style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--on-surface)', minWidth: 180 }}>
         {ACTIONS.map(a => <option key={a}>{a}</option>)}
       </select>
+      
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px', borderLeft: '1px solid rgba(192,199,211,0.1)', borderRight: '1px solid rgba(192,199,211,0.1)', height: 24 }}>
+        <input 
+          type="checkbox" 
+          checked={rule.autoPause} 
+          onChange={e => onChange(rule.id, 'autoPause', e.target.checked)}
+          id={`ap-${rule.id}`}
+          style={{ cursor: 'pointer' }}
+        />
+        <label htmlFor={`ap-${rule.id}`} style={{ fontSize: 9, fontWeight: 800, color: rule.autoPause ? 'var(--primary)' : 'var(--outline)', cursor: 'pointer', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>
+          Auto-Pause
+        </label>
+      </div>
+
       <select value={rule.severity} onChange={e => onChange(rule.id,'severity',e.target.value)} style={{ width: 95, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>
         <option value="high">Critical</option>
         <option value="medium">Warning</option>
@@ -42,7 +56,7 @@ export default function CustomLogicMaker() {
   const [saved, setSaved] = useState(false)
 
   function add() {
-    saveLogicRules([...logicRules, { id: Date.now().toString(), active: true, metric: 'Frequency', operator: '>', value: '4', action: 'Flag Creative Fatigue', severity: 'high' }])
+    saveLogicRules([...logicRules, { id: Date.now().toString(), active: true, metric: 'Frequency', operator: '>', value: '4', action: 'Flag Creative Fatigue', severity: 'high', autoPause: false }])
   }
   function upd(id, f, v) { saveLogicRules(logicRules.map(r => r.id === id ? { ...r, [f]: v } : r)) }
   function del(id) { saveLogicRules(logicRules.filter(r => r.id !== id)) }
@@ -105,7 +119,7 @@ export default function CustomLogicMaker() {
       <div className="card" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="card-header" style={{background: 'var(--surface-low)', padding: '12px 20px'}}>
            <div style={{ display: 'flex', gap: 8, width: '100%', fontSize: 10, color: 'var(--outline)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>
-            <span style={{ width: 44 }}></span><span style={{ width: 120 }}>Metric Parameter</span><span style={{ width: 60, textAlign: 'center' }}>Op</span><span style={{ width: 80 }}>Value</span><span style={{ width: 48 }}></span><span style={{ flex: 1 }}>Automated Action</span><span style={{ width: 95 }}>Severity</span><span style={{ width: 32 }}></span>
+            <span style={{ width: 44 }}></span><span style={{ width: 120 }}>Metric Parameter</span><span style={{ width: 60, textAlign: 'center' }}>Op</span><span style={{ width: 80 }}>Value</span><span style={{ width: 48 }}></span><span style={{ flex: 1 }}>Automated Action</span><span style={{ width: 100, textAlign: 'center' }}>Pause</span><span style={{ width: 95 }}>Severity</span><span style={{ width: 32 }}></span>
           </div>
         </div>
         <div className="card-body" style={{ flex: 1, overflow: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--surface-cont)' }}>

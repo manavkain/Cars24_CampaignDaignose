@@ -2,12 +2,12 @@
 import { useApp } from './AppContext'
 
 const NAV=[
-  {id:'dashboard',       icon:'dashboard',       label:'Dashboard'},
-  {id:'ai-chat',         icon:'forum',            label:'AI Assistant'},
-  {id:'reports',         icon:'analytics',        label:'Reports'},
-  {id:'connectors',      icon:'hub',              label:'Connectors'},
-  {id:'custom-logic',    icon:'rule',             label:'Logic Maker'},
-  {id:'custom-dashboard',icon:'view_quilt',       label:'Custom View'},
+  {id:'detect',         icon:'visibility',       label:'Detect'},
+  {id:'diagnose',       icon:'analytics',        label:'Diagnose'},
+  {id:'act',            icon:'bolt',             label:'Act'},
+  {id:'intel',          icon:'psychology',       label:'Intel'},
+  {id:'launch',         icon:'rocket_launch',    label:'Launch'},
+  {id:'log',            icon:'history',          label:'Log'},
 ]
 const NAV_BOT=[{id:'settings',icon:'settings',label:'Settings'}]
 
@@ -34,13 +34,21 @@ export default function Sidebar({view,setView,isCollapsed,setIsCollapsed}){
       {/* Brand Logo */}
       <div style={{padding: isCollapsed ? '20px 14px' : '24px 20px 12px', display:'flex', alignItems:'center', justifyContent: 'center'}}>
         <div style={{display:'flex',alignItems:'center',gap:12, overflow:'hidden'}}>
-          <div style={{width:40,height:40,background:'linear-gradient(135deg,#005894,#0071bc)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 14px rgba(0,88,148,0.3)',flexShrink:0}}>
-            <span className="material-symbols-outlined" style={{color:'#fff',fontSize:22,fontVariationSettings:"'FILL' 1"}}>directions_car</span>
+          <div style={{
+            width:40, height:40, 
+            background:'#fff', 
+            borderRadius:10, 
+            display:'flex', alignItems:'center', justifyContent:'center', 
+            boxShadow:'0 4px 14px rgba(78,73,242,0.15)', 
+            flexShrink:0,
+            border: '1px solid rgba(78,73,242,0.1)'
+          }}>
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAkFBMVEVHNv7///9JOP79/f9GNf5KOv48Kv4+LP78+/84Jv5EM/6jm/9BMP5PPv5RQf5ALv7u7f/08//r6f/k4f96bf7a1v+4sf+vqP9WR/5eT/5zZv7Auv/Hwv+ooP9wY//QzP/29v+flv/e2/9+cv9qW/+Eef+ro/9cTP6Og//U0f9sXv6Ge/+Tif+Xjv+6tP/c2f+xJRxjAAACIklEQVRYhe1W2ZKqMBBNmiwSQBYXwBV1Vr0z8/9/dyOEKHcSiUzV1H3wvFha9unT6RWhBx74zwEUiJAgiNIh1iT2Q4jG44gKnwmAO+1DRhe75SxL02S/Wh/GnN9DQQUrgwm+QjLfxLFzIMCKvJJWnufV1qPzh7d6YsRRBH9OlNUF8tsoIKELgwhfsDe6QMk4M24LhzAI3eKu83MsSsWk5L0axDjoIt+mGGuG1/4oiN8FE8XbXjPMqOgNgnYBSDC0q9q3nPcHYaBE/iJpGQ5sAAOi/jHVQZABBJLhuZXwdkOCaGByQdm8fkkPv9sVkKiBqVogLFOl4RibJUC8SWpUS1OqQEoY1RICZq5H6u+UyBdTlMCn6hG2tlIIl7ULjKfGXIsoa2LIIjMDgVlTcFVh+cPTosbRIkB7mNjKNeQ1YhvBOFWlArZEQYPhBLfRH0IPCHzdfsSeCHrTiETzhiy02F8KaW0sNVFMaxxKm0C+UDNwb+pY0N208y2jVUTtMjl9l3DVTBtLM0kfazX79t+L9aqdrTmSTirVL/m/EtwGCrC8keDhP34nXa4jTbxm7TL5YIK2FO5DlbKT3gCfhUw43DvWgeeaIQtKwpvF8qV/fO8rcyJWqhzP+3g2X9+92gSs1DL19I5t7wSn5QpC5FiJkJaX9e45rncEiJ+ya/86IMcD48aJg1y34k+PLGQ885zdKwYqayAefmg2HD85dR944HfxF5h5IaGc9BBOAAAAAElFTkSuQmCC" alt="Cars24" style={{width: 28, height: 28}} />
           </div>
           {!isCollapsed && (
             <div style={{whiteSpace:'nowrap', animation: 'fadeIn 0.3s'}}>
               <div style={{fontFamily:'Manrope,sans-serif',fontSize:18,fontWeight:800,color:'var(--on-surface)',letterSpacing:'-0.02em',lineHeight:1.2}}>Cars24</div>
-              <div style={{fontSize:10,fontWeight:700,color:'var(--outline)',textTransform:'uppercase',letterSpacing:'.1em',marginTop:2}}>Precision Architect</div>
+              <div style={{fontSize:10,fontWeight:700,color:'var(--outline)',textTransform:'uppercase',letterSpacing:'.1em',marginTop:2}}>Growth Operator</div>
             </div>
           )}
         </div>
@@ -123,8 +131,8 @@ export default function Sidebar({view,setView,isCollapsed,setIsCollapsed}){
           </button>
         ))}
         <div style={{padding:'8px 12px', display:'flex', justifyContent: isCollapsed ? 'center' : 'flex-start', alignItems:'center', gap:7}}>
-          <span className="dot" style={{background:settings.geminiKey?'#16a34a':'var(--outline-v)', width: 8, height: 8, animation:settings.geminiKey?'pulsedot 2s infinite':'none'}}/>
-          {!isCollapsed && <span style={{fontSize:11, color:settings.geminiKey?'#15512a':'var(--outline)', animation: 'fadeIn 0.3s'}}>{settings.geminiKey?'Gemini connected':'Demo mode'}</span>}
+          <span className="dot" style={{background:settings.apiKey?'#16a34a':'var(--outline-v)', width: 8, height: 8, animation:settings.apiKey?'pulsedot 2s infinite':'none'}}/>
+          {!isCollapsed && <span style={{fontSize:11, color:settings.apiKey?'#15512a':'var(--outline)', animation: 'fadeIn 0.3s'}}>{settings.apiKey?`${settings.aiProvider.charAt(0).toUpperCase() + settings.aiProvider.slice(1)} connected`:'Demo mode'}</span>}
         </div>
       </div>
     </div>

@@ -19,9 +19,10 @@ const TAB_VARIANTS = {
 }
 
 export default function FixGenerator({ selectedId }) {
-  const { diagnosis, addLogEntry, setPipelineStep } = useApp()
+  const { diagnosis, addLogEntry, setPipelineStep, exportToAirtable, log } = useApp()
   const [activeTab, setActiveTab] = useState('Creative')
   const [localSelected, setLocalSelected] = useState(null)
+  const [approvingId, setApprovingId] = useState(null)
   const [copiedId, setCopiedId] = useState(null)
   
   const issues = diagnosis?.issues || []
@@ -33,17 +34,30 @@ export default function FixGenerator({ selectedId }) {
 
   const currentIssue = issues.find(i => i.id === localSelected) || issues[0]
 
-  function deploy(variant) {
-    addLogEntry({
-      id: Date.now(),
-      timestamp: new Date().toLocaleTimeString(),
-      campaign: 'Cars24 - New Cars Q2',
-      platform: 'Meta',
-      fixType: activeTab,
-      description: `Deployed ${variant}: ${currentIssue?.type}`,
-      result: 'pending'
-    })
-    setPipelineStep('track')
+  async function approve(v) {
+    setApprovingId(v.id)
+    try {
+      const entry = {
+        id: Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        timestamp: new Date().toLocaleTimeString(),
+        campaign: 'Cars24 - New Cars Q2',
+        platform: 'Meta',
+        fixType: activeTab,
+        issue: currentIssue?.type.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join(' '),
+        fixSummary: `Approved ${v.title}: ${v.headline}`,
+        before: '—',
+        after: '',
+        result: 'deployed',
+        notes: 'Auto-deployed via Approval'
+      }
+      
+      await addLogEntry(entry)
+    } catch (e) {
+      alert(`Approval failed: ${e.message}`)
+    } finally {
+      setApprovingId(null)
+    }
   }
 
   function handleCopy(v) {
@@ -165,7 +179,9 @@ export default function FixGenerator({ selectedId }) {
                     <button className="btn btn-ghost btn-xs" style={{ flex: 1, padding: '5px' }} onClick={() => handleCopy(v)}>
                       {copiedId === v.id ? '✓ Copied' : 'Copy'}
                     </button>
-                    <button className="btn btn-primary btn-xs" style={{ flex: 1.5, padding: '5px' }} onClick={() => deploy(v.title)}>Deploy</button>
+                    <button className="btn btn-primary btn-xs" style={{ flex: 1.5, padding: '5px' }} onClick={() => approve(v)} disabled={approvingId === v.id}>
+                      {approvingId === v.id ? 'Approving...' : 'Approve'}
+                    </button>
                  </div>
                </div>
              ))}

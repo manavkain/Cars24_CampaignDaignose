@@ -39,8 +39,8 @@ export default function AITools() {
     try {
       const context = { metrics, diagnosis: diagnosis?.summary }
       let response
-      if (settings.geminiKey) {
-        response = await chatWithAI(newMessages, context, settings.geminiKey)
+      if (settings.apiKey) {
+        response = await chatWithAI(newMessages, context, settings)
       } else {
         await new Promise(r => setTimeout(r, 800))
         response = getDemoResponse(msg, metrics)
@@ -58,8 +58,8 @@ export default function AITools() {
     setCopyLoading(true)
     try {
       let result
-      if (settings.geminiKey) {
-        result = await generateCopy(copyBrief, settings.geminiKey)
+      if (settings.apiKey) {
+        result = await generateCopy(copyBrief, settings)
       } else {
         await new Promise(r => setTimeout(r, 900))
         result = {
@@ -110,8 +110,8 @@ export default function AITools() {
               <span style={{ fontSize: 14 }}>↯</span>
               <span className="panel-title">AI Campaign Assistant</span>
             </div>
-            <span style={{ fontSize: 10, color: settings.geminiKey ? 'var(--green)' : 'var(--amber)' }}>
-              {settings.geminiKey ? '● Gemini connected' : '● Demo mode'}
+            <span style={{ fontSize: 10, color: settings.apiKey ? 'var(--green)' : 'var(--amber)' }}>
+              {settings.apiKey ? `● ${settings.aiProvider.charAt(0).toUpperCase() + settings.aiProvider.slice(1)} connected` : '● Demo mode'}
             </span>
           </div>
 

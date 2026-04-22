@@ -6,21 +6,21 @@
 
 /* ── Stitch: Precision Architect Design Tokens ── */
 :root {
-  /* Surface Hierarchy */
-  --surface:#f8f9fa; --surface-low:#f3f4f5; --surface-cont:#edeeef;
-  --surface-high:#e7e8e9; --surface-white:#ffffff; --surface-dim:#d9dadb;
-  /* Primary */
-  --primary:#005894; --primary-c:#0071bc; --on-primary:#ffffff;
+  /* Surface Hierarchy (Slate-based for Cars24) */
+  --surface:#F8FAFC; --surface-low:#F1F5F9; --surface-cont:#E2E8F0;
+  --surface-high:#CBD5E1; --surface-white:#ffffff; --surface-dim:#E2E8F0;
+  /* Primary (Cars24 Blue) */
+  --primary:#4E49F2; --primary-c:#5D57FF; --on-primary:#ffffff;
   --primary-fixed:#d1e4ff; --primary-fixed-dim:#9ecaff;
-  /* Secondary */
-  --secondary:#46607e; --secondary-c:#c2dcff; --on-secondary-c:#47617f;
+  /* Secondary (Slate-500/600) */
+  --secondary:#64748B; --secondary-c:#E2E8F0; --on-secondary-c:#47617f;
   /* Tertiary (Overdrive Orange — surgical use) */
   --tertiary:#804700; --tertiary-c:#a35c00; --on-tertiary:#ffffff;
   --tertiary-fixed:#ffdcc0; --tertiary-fixed-dim:#ffb875;
   /* Text */
-  --on-surface:#191c1d; --on-surface-v:#404751;
+  --on-surface:#0F172A; --on-surface-v:#64748B;
   /* Outline */
-  --outline:#717882; --outline-v:#c0c7d3;
+  --outline:#94A3B8; --outline-v:#CBD5E1;
   /* Error */
   --error:#ba1a1a; --error-c:#ffdad6; --on-error-c:#93000a;
   /* Orange accent */
@@ -59,7 +59,7 @@ body {
 
 /* ── STITCH: Text Gradient ── */
 .text-gradient {
-  background: linear-gradient(135deg, #005894, #0071bc);
+  background: linear-gradient(135deg, #4E49F2, #5D57FF);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -83,12 +83,12 @@ body {
   white-space: nowrap;
 }
 .btn-primary {
-  background: linear-gradient(135deg, #005894, #0071bc);
+  background: linear-gradient(135deg, #4E49F2, #5D57FF);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(0,88,148,0.25);
+  box-shadow: 0 4px 14px rgba(78,73,242,0.25);
 }
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 6px 20px rgba(0,88,148,0.35);
+  box-shadow: 0 6px 20px rgba(78,73,242,0.35);
   transform: translateY(-1px);
 }
 .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
@@ -306,7 +306,7 @@ label {
 
 /* ── CHAT ── */
 .bubble-user {
-  background: linear-gradient(135deg, #005894, #0071bc);
+  background: linear-gradient(135deg, #4E49F2, #5D57FF);
   color: #fff;
   border-radius: 16px 16px 4px 16px;
   padding: 11px 15px;
@@ -314,7 +314,7 @@ label {
   margin-left: auto;
   font-size: 13px;
   line-height: 1.6;
-  box-shadow: 0 4px 12px rgba(0,88,148,0.25);
+  box-shadow: 0 4px 12px rgba(78,73,242,0.25);
 }
 .bubble-ai {
   background: var(--surface-white);
@@ -349,7 +349,7 @@ label {
   width: 38px;
   height: 38px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #005894, #0071bc);
+  background: linear-gradient(135deg, #4E49F2, #5D57FF);
   border: none;
   cursor: pointer;
   display: flex;
@@ -358,7 +358,7 @@ label {
   color: #fff;
   flex-shrink: 0;
   transition: all .2s;
-  box-shadow: 0 4px 10px rgba(0,88,148,0.25);
+  box-shadow: 0 4px 10px rgba(78,73,242,0.25);
 }
 .chat-send-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,88,148,0.35); }
 .chat-send-btn:disabled { background: var(--surface-high); cursor: not-allowed; box-shadow: none; }
@@ -383,7 +383,7 @@ label {
 
 /* ── MISC ── */
 .progress-bar { height: 4px; background: var(--surface-high); border-radius: 99px; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #005894, #0071bc); border-radius: 99px; transition: width .6s ease; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #4E49F2, #5D57FF); border-radius: 99px; transition: width .6s ease; }
 .toggle-track { position: relative; width: 36px; height: 20px; border-radius: 99px; background: var(--outline-v); cursor: pointer; transition: background .2s; flex-shrink: 0; }
 .toggle-track.on { background: var(--primary-c); }
 .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
