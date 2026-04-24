@@ -3,10 +3,24 @@ export async function GET(req) {
   const id = searchParams.get('id')
   if (!id) return Response.json({ error: 'No sheet ID' }, { status: 400 })
   try {
+    console.log('Fetching sheet:', id)
     const url = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=0`
-    const res = await fetch(url)
-    if (!res.ok) throw new Error('Sheet fetch failed. Make sure sheet is public.')
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    })
+    
+    if (!res.ok) {
+      console.error('Sheet fetch failed:', res.status, res.statusText)
+      throw new Error(`Sheet fetch failed (${res.status}). Make sure sheet is public ("Anyone with link can view").`)
+    }
+    
     const csv = await res.text()
+    if (!csv || csv.length < 10) {
+      throw new Error('Received empty or invalid CSV from Google Sheets.')
+    }
+    
     const lines = csv.trim().split('\n').map(line => {
       const result = []
       let current = ''

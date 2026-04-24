@@ -209,19 +209,16 @@ export function AppProvider({ children }) {
     else if (key.startsWith('sk-')) provider = 'openai'
     
     try {
-      // Small test call
-      const res = await fetch('/api/webhook', { // We use the generic proxy if needed, but for now let's try direct or a simple test
+      const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-           testMode: true,
-           provider,
-           apiKey: key
+           type: 'test',
+           settings: { apiKey: key, aiProvider: provider }
         }),
       })
-      // Actually, let's implement a real test in lib/ai.js and call it here.
-      // For now, return the detected provider and assume OK if format matches
-      return { ok: true, provider }
+      const d = await res.json()
+      return { ok: d.ok, provider, error: d.error }
     } catch (e) {
       return { ok: false, error: e.message }
     }
