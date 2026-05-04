@@ -8,7 +8,7 @@ const Ctx = createContext(null)
 export function AppProvider({ children }) {
   const [settings, setSettings] = useState({
     apiKey: '',
-    aiProvider: 'gemini',
+    aiProvider: 'openrouter',
     webhookUrl: '', 
     sheetsUrl: '',
     alertWebhookUrl: '',
@@ -53,9 +53,8 @@ export function AppProvider({ children }) {
   const runDiagnosis = useCallback(async () => {
     setPipelineStep('diagnose')
     try {
-      const result = settings.apiKey
-        ? await diagnoseCampaign(metrics, deltas, log, settings)
-        : mockDiagnosis
+      // Calling diagnosis directly - backend handles the system key fallback
+      const result = await diagnoseCampaign(metrics, deltas, log, settings)
       setDiagnosis(result)
       
       // Auto-Pause & Logic Loop Processing
@@ -206,6 +205,7 @@ export function AppProvider({ children }) {
     
     let provider = 'gemini'
     if (key.startsWith('sk-ant-')) provider = 'anthropic'
+    else if (key.startsWith('sk-or-')) provider = 'openrouter'
     else if (key.startsWith('sk-')) provider = 'openai'
     
     try {

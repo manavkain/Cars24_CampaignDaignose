@@ -13,10 +13,6 @@ export default function Launch() {
 
   async function generateLaunchpad() {
     if (!brief) return
-    if (!settings.apiKey) {
-      alert('Add an API key in Settings to use the Launchpad.')
-      return
-    }
     
     setIsGenerating(true)
     setLaunchpad(null)

@@ -32,10 +32,6 @@ export default function Intel() {
   }, [])
 
   async function analyzeStrategy() {
-    if (!settings.apiKey) {
-      alert('Add an API key in Settings to run AI analysis.')
-      return
-    }
     if (!ads || ads.length === 0) {
       alert('No ads available to analyze.')
       return
@@ -106,8 +102,8 @@ export default function Intel() {
         </div>
 
         {/* Intelligence Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface-low)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minHeight: 0 }}>
+          <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface-low)', minHeight: 0 }}>
             <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--primary)', marginRight: 8, verticalAlign: 'middle' }}>insights</span>

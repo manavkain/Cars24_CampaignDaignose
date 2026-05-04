@@ -35,9 +35,8 @@ export default function AIChat(){
     setInput('');if(taRef.current)taRef.current.style.height='40px'
     const nm=[...msgs,{role:'user',content:msg}];setMsgs(nm);setLoading(true)
     try{
-      let r
-      if(settings.apiKey){r=await chatWithAI(nm,{metrics,summary:diagnosis?.summary},settings)}
-      else{await new Promise(x=>setTimeout(x,700+Math.random()*400));r=DemoReply(msg,metrics)}
+      // Calling AI directly as backend now has a hardcoded base key
+      const r = await chatWithAI(nm,{metrics,summary:diagnosis?.summary},settings)
       setMsgs(p=>[...p,{role:'ai',content:r}])
     }catch(e){setMsgs(p=>[...p,{role:'ai',content:`Error: ${e.message}`}])}
     finally{setLoading(false)}
@@ -46,16 +45,8 @@ export default function AIChat(){
   async function genCopy(){
     if(!copyBrief.trim())return;setCopyLoading(true)
     try{
-      let r
-      if(settings.apiKey){r=await generateCopy(copyBrief,settings)}
-      else{
-        await new Promise(x=>setTimeout(x,900))
-        r={variants:[
-          {label:'Urgency',headline:'Book your dream car today',body:"India's most trusted marketplace. Certified pre-owned, instant delivery."},
-          {label:'Social Proof',headline:"50,000+ happy buyers can't be wrong",body:"Join India's largest car community. Test drive today, drive home tomorrow."},
-          {label:'Value',headline:'Get ₹25,000 more for your old car',body:'Best-in-class exchange value. Switch to your dream car this week.'},
-        ]}
-      }
+      // Calling AI directly as backend now has a hardcoded base key
+      const r = await generateCopy(copyBrief,settings)
       setCopyResults(r.variants)
     }catch(e){alert(e.message)}finally{setCopyLoading(false)}
   }
@@ -78,9 +69,9 @@ export default function AIChat(){
           </button>
         ))}
         <div style={{flex:1}}/>
-        <span className={`badge ${settings.apiKey?'badge-green':'badge-amber'}`} style={{padding:'6px 14px'}}>
-          <span className="dot" style={{background:settings.apiKey?'#16a34a':'var(--orange)', animation:settings.apiKey?'pulsedot 2s infinite':'none'}}/>
-          {settings.apiKey?`${settings.aiProvider.charAt(0).toUpperCase() + settings.aiProvider.slice(1)} Live`:'Demo Mode'}
+        <span className="badge badge-green" style={{padding:'6px 14px'}}>
+          <span className="dot" style={{background:'#16a34a', animation:'pulsedot 2s infinite'}}/>
+          System AI Active
         </span>
       </div>
 

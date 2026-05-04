@@ -74,12 +74,16 @@ export default function Settings() {
                 )}
                 <div style={{ marginTop: 12 }}>
                    <label>Manual Provider Override</label>
-                   <select value={form.aiProvider || 'gemini'} onChange={e => setForm({ ...form, aiProvider: e.target.value })} style={{ width: '100%' }}>
+                   <select value={form.aiProvider || 'openrouter'} onChange={e => setForm({ ...form, aiProvider: e.target.value })} style={{ width: '100%' }}>
+                     <option value="openrouter">OpenRouter (Gemma 4 31B - Recommended)</option>
                      <option value="gemini">Google Gemini (2.0 Flash)</option>
                      <option value="openai">OpenAI (GPT-4o)</option>
                      <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
                    </select>
                 </div>
+                <p style={{ fontSize: 11, color: 'var(--on-primary-container)', background: 'var(--primary-container)', padding: '6px 10px', borderRadius: 4, marginTop: 8, fontWeight: 600 }}>
+                  ✨ Base AI Active: Gemma 4 31B is running on the system key. You only need to add a key if you want to use other specific models.
+                </p>
                 <p style={{ fontSize: 11, color: 'var(--outline)', marginTop: 8 }}>Keys are stored locally only. System auto-detects provider based on key prefix.</p>
               </div>
               <div>
@@ -186,9 +190,9 @@ export default function Settings() {
               <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[
                   { l:'Platform Version', v:'v2.4.1-beta' },
-                  { l:'AI Engine', v:'Curator-X9' },
+                  { l:'AI Engine', v:'Gemma 4 31B' },
                   { l:'Region', v:'us-east-1' },
-                  { l:'Gemini', v: settings.geminiKey ? 'Connected' : 'Mock Mode', c: settings.geminiKey ? '#16a34a' : 'var(--orange)' }
+                  { l:'Status', v: 'Core Active', c: '#16a34a' }
                 ].map(s => (
                   <div key={s.l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
                     <span style={{ color: 'var(--outline)', fontWeight: 600 }}>{s.l}</span>
